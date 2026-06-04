@@ -1,0 +1,16 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "codegraph": {
+      "command": [
+        "/usr/bin/codegraph",
+        "serve",
+        "--mcp",
+        "--path",
+        "/home/jjpb/Q/1.Sw/1a.Own/1a11.Seth/Orbe"
+      ],
+      "enabled": true,
+      "type": "local"
+    }
+  }
+}
