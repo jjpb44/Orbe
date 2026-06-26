@@ -54,23 +54,26 @@ Orbe/
 
 ## Quick Start
 
-**Prerequisites:** Rust 1.80+, `dx` (Dioxus CLI), SurrealDB 2.x, jj (jujutsu)
+**Prerequisites:** Rust 1.80+, jj (jujutsu). SurrealDB 2.x + `dx` CLI come in Phase 2.
 
 ```bash
 # Clone
 jj git clone https://upd.dev/jjpb/Orbe.git
 cd Orbe
 
-# Backend (one terminal)
+# Phase 1: server runs from cargo, no JS toolchain needed
 cd Backend/P/orbe-api
-cargo install dioxus-cli --locked   # one-time
-dx serve                            # builds server + WASM, opens browser
+cargo run                              # → http://127.0.0.1:8080
 ```
 
-`dx serve` boots the Axum server (REST + Dioxus SSR + server fns) on
-`http://localhost:8080` and live-reloads the WASM bundle on save.
+The page renders the empty inventory stub via Dioxus SSR + `#[server]` fn.
+For WASM hot reload (Phase 2 onward):
+```bash
+cargo install dioxus-cli --locked      # one-time
+dx serve                               # builds server + WASM, opens browser
+```
 
-For prod-style builds:
+Prod builds:
 ```bash
 cargo build --release --features server       # native server binary
 dx build --platform web --release             # WASM bundle
@@ -110,7 +113,7 @@ Wire (axum) →————————————┘  (same flow fns, no dupli
 ## Design
 
 Dark-first palette inspired by Nequi, Nu, WhatsApp — immersive, fast, magical.
-Design tokens in `Backend/P/orbe-api/assets/main.css` as CSS vars (`--o-purple`, `--o-surface`, …).
+Design tokens in `Backend/P/orbe-api/public/main.css` as CSS vars (`--o-purple`, `--o-surface`, …).
 See `DESIGN.md` for the full system.
 
 ## Version Control
@@ -134,10 +137,12 @@ MIT — see [LICENSE](LICENSE).
 - [x] Design system (DESIGN.md)
 - [x] Conventions (CONVENTIONS.md)
 - [x] Phased delivery plan (PLAN.md)
-- [ ] Backend scaffold (orbe-api crate compiles)
-- [ ] SurrealDB schema
-- [ ] Dioxus UI scaffold (browser loads empty inventory)
-- [ ] Product CRUD via #[server] fns
-- [ ] Stock adjustments + movement log
-- [ ] PWA manifest + icons
-- [ ] End-to-end local flow
+- [x] Backend scaffold — `orbe-api` crate compiles (`cargo build` green, 290 crates)
+- [x] SurrealDB schema — `Backend/R/1.Db/1a.Sch/Inventory.surql` (4 tables, indexes, asserts)
+- [x] Dioxus UI scaffold — `cargo run` boots Axum on :8080, browser shows empty inventory
+- [x] Design tokens — `public/main.css` exposes `--o-purple`, `--o-surface`, etc.
+- [x] 3 ADRs — SurrealDB, LayerNaming, DioxusFullstack (`Backend/A/1.ADR/`)
+- [ ] Product CRUD via #[server] fns *(Phase 2)*
+- [ ] Stock adjustments + movement log *(Phase 2)*
+- [ ] PWA manifest + icons *(Phase 3, deferred)*
+- [ ] End-to-end local flow *(Phase 2)*

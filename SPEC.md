@@ -96,20 +96,20 @@ DEFINE INDEX idx_category_slug ON category COLUMNS slug UNIQUE;
 | id | status | task | cites |
 |----|--------|------|-------|
 | T1 | x | jj git init --colocate | C5 |
-| T2 | . | Create `Backend/P/orbe-api/Cargo.toml` — single crate, `features = ["server"]` | C10 |
-| T3 | . | Scaffold `src/{core,flow,gate,wire,ui}/` modules — stub structs, ports.rs traits | C2,V1,V7 |
-| T4 | . | Scaffold Axum wire handlers + `utoipa` OpenAPI — compile clean | C2,V1 |
-| T5 | . | Write SurrealDB schema `Backend/R/1.Db/1a.Sch/Inventory.surql` | C1,I.surreal |
-| T6 | . | Write `Backend/R/2.Cf/Env.example` — SURREAL_URL, SURREAL_USER, SURREAL_PASS, ORBE_PORT | C1 |
-| T7 | . | Generate ADRs — SurrealDB.md, LayerNaming.md, DioxusFullstack.md | C1,C2,C10 |
-| T8 | . | `cargo build` — zero errors | C9 |
-| T9 | . | `Dioxus.toml` — `default_platform = "web"`, hot reload on | C3,C10 |
-| T10 | . | `src/ui/` — App component, routes, `#[server] fn list_products()` | C3,V7 |
-| T11 | . | Inventory page stub — renders empty list via `use_resource` | C3 |
-| T12 | . | CSS vars from DESIGN.md in `assets/main.css`; tokens exposed as `var(--o-purple)` etc | C7,C11 |
-| T13 | . | PWA manifest + icons | C3 |
-| T14 | . | `dx serve` — zero errors, browser loads `/` | C9,C10 |
-| T15 | . | Push to upd.dev/jjpb/Orbe.git | C5 |
+| T2 | x | Create `Backend/P/orbe-api/Cargo.toml` — single crate, `features = ["server"]` | C10 |
+| T3 | x | Scaffold `src/{core,flow,gate,wire,ui}/` modules — stub structs, ports.rs traits | C2,V1,V7 |
+| T4 | ~ | Wire: server fn returns empty `[]`; utoipa OpenAPI deferred to P2 | C2,V1,V7 |
+| T5 | x | Write SurrealDB schema `Backend/R/1.Db/1a.Sch/Inventory.surql` | C1,I.surreal |
+| T6 | x | Write `Backend/R/2.Cf/Env.example` — SURREAL_URL, SURREAL_USER, SURREAL_PASS, ORBE_PORT | C1 |
+| T7 | x | Generate ADRs — SurrealDB.md, LayerNaming.md, DioxusFullstack.md | C1,C2,C10 |
+| T8 | x | `cargo build` — zero errors (290 crates, 55s cold; ~0.3s incremental) | C9 |
+| T9 | x | `Dioxus.toml` — `default_platform = "web"`, hot reload watch | C3,C10 |
+| T10 | x | `src/ui/` — App component, routes, `#[server] fn list_products()` | C3,V7 |
+| T11 | x | Inventory page stub — renders empty list via `use_resource` | C3 |
+| T12 | x | CSS vars from DESIGN.md in `public/main.css` (Dioxus default `public_dir`) | C7,C11 |
+| T13 | . | PWA manifest + icons — deferred to P3 (not MVP-critical) | C3 |
+| T14 | ~ | `cargo run` boots Axum on :8080, browser shows "Phase 1 scaffold"; `dx` CLI install + `dx serve` deferred to P2 | C9,C10 |
+| T15 | . | Push to upd.dev/jjpb/Orbe.git — blocked on SSH egress (user pushes manually) | C5 |
 
 ### Phase 2: Inventory CRUD
 

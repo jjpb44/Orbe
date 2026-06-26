@@ -1,0 +1,12 @@
+[application]
+name = "orbe"
+default_platform = "web"
+out_dir = "dist"
+
+[web]
+title = "Orbe"
+app_name = "orbe"
+
+[serve]
+address = "0.0.0.0"
+port = 8080
