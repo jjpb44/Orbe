@@ -13,48 +13,68 @@ Future phases layer in customer management, sales, and SaaS hosting.
 
 ## Stack
 
-| Backend | Frontend |
-|---------|----------|
-| Rust · Axum 0.8 | Vue 3 · TypeScript |
-| SurrealDB 2.x | Vite · UnoCSS |
-| tokio · utoipa (OpenAPI) | Pinia · PWA |
-| Clean Architecture | JuanJo.Decimal convention |
+Full Rust. One toolchain (`cargo` + `dx`).
+
+| Layer | Choice |
+|---|---|
+| Backend | Rust · Axum 0.8 |
+| Frontend | Dioxus 0.7 · RSX · signals |
+| Fullstack | Dioxus `#[server]` fns over Axum (single crate) |
+| Database | SurrealDB 2.x (Rust SDK) |
+| Architecture | Clean Arch — Core → Flow → Gate → Wire |
+| Styling | Plain CSS + design tokens (CSS vars) |
+| Build | `cargo build` (server) · `dx build --platform web` (WASM) |
+| VCS | jj (jujutsu) with colocated git |
+| License | MIT |
+
+No JS, no Node, no npm/bun/pnpm, no Vue/React/UnoCSS/Tailwind/Vite. Editor-agnostic.
 
 ## Structure
 
 ```
 Orbe/
-├── Backend/                  # Rust workspace (Axum + SurrealDB)
-│   ├── P/                    # Active crates (orbe-api, orbe-inv)
-│   ├── R/                    # Resources (schema, config)
-│   └── A/                    # Docs & ADRs
-├── Frontend/                 # Vue 3 + Vite PWA
-│   ├── P/                    # Source (JuanJo.Decimal convention)
-│   ├── R/                    # Assets
-│   └── A/                    # Docs & ADRs
-├── SPEC.md                   # Project specification
-├── DESIGN.md                 # Design system
+├── Backend/                       # ALL Rust — workspace + crates
+│   ├── P/orbe-api/                # the only crate for MVP
+│   │   ├── src/{core,flow,gate,wire,ui}/
+│   │   ├── assets/                # main.css, PWA manifest, icons
+│   │   ├── Cargo.toml             # features = ["server"]
+│   │   └── Dioxus.toml            # default_platform = "web"
+│   ├── R/
+│   │   ├── 1.Db/1a.Sch/           # SurrealDB schemas
+│   │   ├── 1.Db/2.Sd/             # .toon seed data
+│   │   └── 2.Cf/                  # Env.example
+│   └── A/                         # ADRs
+├── Frontend/                      # reserved — empty until a 2nd FE consumer
+├── DESIGN.md                      # design system
+├── SPEC.md                        # project specification
+├── CONVENTIONS.md                 # how we name, layer, and test
+├── PLAN.md                        # phased delivery plan
 └── README.md
 ```
 
 ## Quick Start
 
-**Prerequisites:** Rust 1.80+, Node.js 22+, SurrealDB 2.x, jj (jujutsu)
+**Prerequisites:** Rust 1.80+, `dx` (Dioxus CLI), SurrealDB 2.x, jj (jujutsu)
 
 ```bash
 # Clone
 jj git clone https://upd.dev/jjpb/Orbe.git
 cd Orbe
 
-# Backend
-cd Backend
-cargo build
-surreal start --user root --pass root
+# Backend (one terminal)
+cd Backend/P/orbe-api
+cargo install dioxus-cli --locked   # one-time
+dx serve                            # builds server + WASM, opens browser
+```
 
-# Frontend (separate terminal)
-cd ../Frontend
-pnpm install
-pnpm dev
+`dx serve` boots the Axum server (REST + Dioxus SSR + server fns) on
+`http://localhost:8080` and live-reloads the WASM bundle on save.
+
+For prod-style builds:
+```bash
+cargo build --release --features server       # native server binary
+dx build --platform web --release             # WASM bundle
+dx bundle --platform web --pwa                # PWA-ready assets
 ```
 
 ## Architecture
@@ -62,36 +82,41 @@ pnpm dev
 Backend follows Clean Architecture, layered from domain to transport:
 
 ```
-Core → Flow → Gate → Wire
+Core → Flow → Gate (ports.rs) → Wire (axum)
+                       ↑
+                       └── Gate (surreal/) — adapter implementing the ports
+```
+
+Plus the Dioxus UI sits on top of the same Flow use cases via `#[server]` fns:
+
+```
+UI (Dioxus) → #[server] → Flow → Gate ports → SurrealDB adapter
+                          ↑
+Wire (axum) →————————————┘  (same flow fns, no duplication)
 ```
 
 | Layer | Dir | Role |
-|-------|-----|------|
+|---|---|---|
 | Core | `core/` | Entities, value objects, domain rules |
-| Flow | `flow/` | Use cases, application services |
-| Gate | `gate/` | Repository traits (ports) + SurrealDB adapter |
-| Wire | `wire/` | Axum handlers, routes, OpenAPI DTOs |
+| Flow | `flow/` | Use cases — orchestrate core + gate traits |
+| Gate | `gate/` | Ports (`ports.rs`) + SurrealDB adapter (`surreal/`) |
+| Wire | `wire/` | Axum router + utoipa OpenAPI |
+| UI | `ui/` | Dioxus components + server fns |
 
-**Critical constraint:** `orbe-api` (Wire) must only import from `gate/ports.rs`
-traits. It must never touch `core/` or `flow/` directly.
+**Critical constraints (SPEC §V):**
+- V1: Wire ⊥ import from `core/` | `flow/` — only from `gate/ports.rs`.
+- V7: Dioxus UI ⊥ import from `gate/surreal/` — only via `#[server]` fns → flow → ports.
 
 ## Design
 
 Dark-first palette inspired by Nequi, Nu, WhatsApp — immersive, fast, magical.
-
-| Token | Role | Hex |
-|-------|------|-----|
-| Purple | Primary | `#6B21A8` |
-| Black | Background | `#0A0A0A` |
-| Teal | Accent | `#2DD4BF` |
-
-Built with UnoCSS shortcuts (`o-btn`, `o-card`, `o-input`, `o-badge`).
-Typography leans geometric display + mono accent. No light theme for MVP.
+Design tokens in `Backend/P/orbe-api/assets/main.css` as CSS vars (`--o-purple`, `--o-surface`, …).
+See `DESIGN.md` for the full system.
 
 ## Version Control
 
 [jujutsu](https://github.com/jj-vcs/jj) (jj) with colocated git backend.
-Primary remote: [Codeberg](https://codeberg.org). GitHub serves as mirror.
+Primary remote: upd.dev / Codeberg. GitHub serves as mirror.
 
 ```bash
 jj git clone https://upd.dev/jjpb/Orbe.git
@@ -105,11 +130,14 @@ MIT — see [LICENSE](LICENSE).
 
 **Phase 1 — Inventory MVP** (active development)
 
-- [ ] Project specification (SPEC.md)
-- [ ] Design system (DESIGN.md)
-- [ ] Backend scaffold (Rust workspace + crates)
+- [x] Project specification (SPEC.md)
+- [x] Design system (DESIGN.md)
+- [x] Conventions (CONVENTIONS.md)
+- [x] Phased delivery plan (PLAN.md)
+- [ ] Backend scaffold (orbe-api crate compiles)
 - [ ] SurrealDB schema
-- [ ] Product CRUD endpoints
+- [ ] Dioxus UI scaffold (browser loads empty inventory)
+- [ ] Product CRUD via #[server] fns
 - [ ] Stock adjustments + movement log
-- [ ] Vue 3 PWA client
+- [ ] PWA manifest + icons
 - [ ] End-to-end local flow

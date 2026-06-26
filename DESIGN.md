@@ -60,18 +60,22 @@ Patterns:
 - Page transitions: slide + fade (400ms)
 - Button press: scale(0.97) + haptic feedback on mobile
 
-## 6. Component Tokens (UnoCSS shortcuts)
+## 6. Component Tokens (CSS classes, applied via `class="o-btn"`)
+
+Tokens are plain CSS classes that consume the CSS vars from §2.
+Source-of-truth lives in `Backend/P/orbe-api/assets/main.css`.
+**No UnoCSS, no Tailwind, no utility-class soup.**
 
 | Token | Description |
 |---|---|
-| `o-btn` | purple bg, white text, rounded-lg, px-4 py-2, hover:brightness-110 |
-| `o-btn-ghost` | transparent, purple text, border purple |
-| `o-card` | surface bg, rounded-xl, p-4, shadow-lg |
-| `o-input` | surface-alt bg, rounded-lg, px-3 py-2, focus:ring-2 purple |
-| `o-badge` | rounded-full, px-2 py-0.5, text-xs, font-mono |
-| `o-badge-ok` | teal bg, black text |
+| `o-btn` | `background: var(--o-purple)`, `color: var(--o-text)`, `border-radius: 12px`, `padding: 8px 16px`, hover `brightness(1.1)` |
+| `o-btn-ghost` | transparent bg, `color: var(--o-purple)`, 1px purple border |
+| `o-card` | `background: var(--o-surface)`, `border-radius: 12px`, `padding: 16px`, soft shadow |
+| `o-input` | `background: var(--o-surface-alt)`, focus ring `2px solid var(--o-purple)` |
+| `o-badge` | `border-radius: 999px`, `font-family: var(--o-font-mono)`, small text |
+| `o-badge-ok` | `background: var(--o-teal)`, `color: var(--o-black)` |
 | `o-badge-low` | red bg, white text (stock < 5) |
-| `o-table` | full-width, surface-alt header, alternating rows |
+| `o-table` | full-width, `var(--o-surface-alt)` header, alternating row tints |
 
 ## 7. Iconography
 
@@ -95,3 +99,41 @@ Patterns:
 - Color contrast ≥ 4.5:1 for text
 - Focus rings visible (purple, 2px)
 - Reduced motion: respect `prefers-reduced-motion`
+
+## 10. CSS variables & how to consume
+
+Every token in §2 ships as a CSS variable in `assets/main.css`:
+
+```css
+:root {
+  --o-purple: #6B21A8;
+  --o-teal: #2DD4BF;
+  --o-black: #0A0A0A;
+  --o-surface: #111111;
+  --o-surface-alt: #1A1A1A;
+  --o-text: #F5F5F5;
+  --o-text-muted: #9CA3AF;
+  --o-font: "DM Sans", system-ui, sans-serif;
+  --o-font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --o-radius: 12px;
+  --o-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --o-duration-fast: 150ms;
+  --o-duration: 250ms;
+  --o-duration-slow: 400ms;
+  --o-ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+```
+
+Dioxus components consume them directly:
+
+```rust
+rsx! {
+    button {
+        class: "o-btn",
+        onclick: move |_| { /* … */ },
+        "Crear producto"
+    }
+}
+```
+
+Adding a new token? Append to §2 table + `assets/main.css` in one PR.

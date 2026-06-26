@@ -12,14 +12,16 @@ Feel: immersive, magical, instant.
 | id | constraint |
 |----|------------|
 | C1 | SurrealDB 2.x — single binary dev, cluster prod |
-| C2 | Rust backend — Axum 0.8, Clean Architecture |
-| C3 | Vue 3 + Vite + UnoCSS + Pinia — PWA |
+| C2 | Rust backend — Axum 0.8, Clean Architecture (Core/Flow/Gate/Wire) |
+| C3 | Dioxus 0.7 + RSX + signals — fullstack over Axum, WASM (web/desktop/mobile) |
 | C4 | JuanJo.Decimal file convention (P/R/A top-level) |
-| C5 | jj (jujutsu) VCS — Codeberg primary, GitHub mirror |
+| C5 | jj (jujutsu) VCS — upd.dev/Codeberg primary, GitHub mirror |
 | C6 | No auth, no billing, no CI for Phase 1 |
 | C7 | Dark-first UI — no light theme MVP |
-| C8 | Single monorepo — `Backend/` + `Frontend/` root dirs |
+| C8 | Single monorepo — `Backend/` (Rust); `Frontend/` reserved for future FE stack split |
 | C9 | Everything ! compile & run locally before first commit |
+| C10 | Single Rust crate `orbe-api` — `cargo build` (server) + `dx build --platform web` (WASM); no JS toolchain |
+| C11 | `.toon` for seed/fixture data; Cargo.toml/Dioxus.toml stay native |
 
 ## §I — Interfaces
 
@@ -85,6 +87,7 @@ DEFINE INDEX idx_category_slug ON category COLUMNS slug UNIQUE;
 | V4 | ∀ stock adjustment → `stock_movement` record created |
 | V5 | `stock_qty` ≥ 0 ∀ product |
 | V6 | `created_at` READONLY — never mutable after insert |
+| V7 | `#[server]` fns = sole FE→data path — Dioxus UI ⊥ import from `gate/surreal/` (only `gate/ports.rs` traits) |
 
 ## §T — Tasks
 
@@ -92,31 +95,31 @@ DEFINE INDEX idx_category_slug ON category COLUMNS slug UNIQUE;
 
 | id | status | task | cites |
 |----|--------|------|-------|
-| T1 | . | jj git init --colocate | C5 |
-| T2 | . | Create workspace Cargo.toml `members = ["Backend/P/orbe-api", "Backend/P/orbe-inv"]` | C2,C8 |
-| T3 | . | Scaffold Backend Core/Flow/Gate/Wire layers — stub structs, ports.rs traits | C2,V1 |
-| T4 | . | Scaffold Axum wire handlers — compile clean | C2,V1 |
+| T1 | x | jj git init --colocate | C5 |
+| T2 | . | Create `Backend/P/orbe-api/Cargo.toml` — single crate, `features = ["server"]` | C10 |
+| T3 | . | Scaffold `src/{core,flow,gate,wire,ui}/` modules — stub structs, ports.rs traits | C2,V1,V7 |
+| T4 | . | Scaffold Axum wire handlers + `utoipa` OpenAPI — compile clean | C2,V1 |
 | T5 | . | Write SurrealDB schema `Backend/R/1.Db/1a.Sch/Inventory.surql` | C1,I.surreal |
-| T6 | . | Write `Backend/R/2.Cf/Env.example` — SURREAL_URL, SURREAL_USER, SURREAL_PASS | C1 |
-| T7 | . | Generate ADRs — SurrealDB.md, LayerNaming.md | C1,C2 |
+| T6 | . | Write `Backend/R/2.Cf/Env.example` — SURREAL_URL, SURREAL_USER, SURREAL_PASS, ORBE_PORT | C1 |
+| T7 | . | Generate ADRs — SurrealDB.md, LayerNaming.md, DioxusFullstack.md | C1,C2,C10 |
 | T8 | . | `cargo build` — zero errors | C9 |
-| T9 | . | Vite + Vue 3 scaffold — `Frontend/P/` structure | C3,C8 |
-| T10 | . | UnoCSS config + design tokens | C3,C7 |
-| T11 | . | Scaffold inventory components — stubs render clean | C3 |
-| T12 | . | Router config — `/` → inventory list | C3 |
+| T9 | . | `Dioxus.toml` — `default_platform = "web"`, hot reload on | C3,C10 |
+| T10 | . | `src/ui/` — App component, routes, `#[server] fn list_products()` | C3,V7 |
+| T11 | . | Inventory page stub — renders empty list via `use_resource` | C3 |
+| T12 | . | CSS vars from DESIGN.md in `assets/main.css`; tokens exposed as `var(--o-purple)` etc | C7,C11 |
 | T13 | . | PWA manifest + icons | C3 |
-| T14 | . | `npm run dev` — zero errors | C9 |
+| T14 | . | `dx serve` — zero errors, browser loads `/` | C9,C10 |
 | T15 | . | Push to upd.dev/jjpb/Orbe.git | C5 |
 
 ### Phase 2: Inventory CRUD
 
 | id | status | task | cites |
 |----|--------|------|-------|
-| T16 | . | Implement `orbe-inv` core entities — Product, Category, Supplier, Movement | V1,V2,V3 |
+| T16 | . | Implement core entities — Product, Category, Supplier, Movement | V2,V3,V5 |
 | T17 | . | Implement flow use cases — create/update/delete/list/adjust | V4,V5 |
 | T18 | . | Implement SurrealDB gate adapter — ports.rs impl | V1 |
 | T19 | . | Wire Axum handlers → gate ports | V1,I.api |
-| T20 | . | Frontend inventory store + API composable | I.api |
+| T20 | . | Dioxus signals + `#[server]` flow wrappers for inventory page | I.api,V7 |
 | T21 | . | ProductList + ProductCard + ProductForm components | C3 |
 | T22 | . | Stock adjustment modal + badge | V4,V5 |
 | T23 | . | E2E test: create product → list → adjust stock | V4,V5 |
