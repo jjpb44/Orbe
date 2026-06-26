@@ -63,7 +63,7 @@ Patterns:
 ## 6. Component Tokens (CSS classes, applied via `class="o-btn"`)
 
 Tokens are plain CSS classes that consume the CSS vars from §2.
-Source-of-truth lives in `Backend/P/orbe-api/assets/main.css`.
+Source-of-truth lives in `Backend/Q/orbe-api/assets/main.css`.
 **No UnoCSS, no Tailwind, no utility-class soup.**
 
 | Token | Description |

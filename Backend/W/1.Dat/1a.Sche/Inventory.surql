@@ -9,8 +9,9 @@ DEFINE FIELD IF NOT EXISTS sku        ON TABLE product TYPE string     ASSERT $v
 DEFINE FIELD IF NOT EXISTS name       ON TABLE product TYPE string     ASSERT $value != NONE;
 DEFINE FIELD IF NOT EXISTS category   ON TABLE product TYPE option<record<category>>;
 DEFINE FIELD IF NOT EXISTS supplier   ON TABLE product TYPE option<record<supplier>>;
-DEFINE FIELD IF NOT EXISTS price      ON TABLE product TYPE option<decimal>;
+DEFINE FIELD IF NOT EXISTS price      ON TABLE product TYPE int         ASSERT $value >= 0;
 DEFINE FIELD IF NOT EXISTS stock      ON TABLE product TYPE int         DEFAULT 0 ASSERT $value >= 0;
+DEFINE FIELD IF NOT EXISTS min_stock  ON TABLE product TYPE int         DEFAULT 0 ASSERT $value >= 0;
 DEFINE FIELD IF NOT EXISTS created_at ON TABLE product TYPE datetime   DEFAULT time::now();
 DEFINE FIELD IF NOT EXISTS updated_at ON TABLE product TYPE datetime   DEFAULT time::now();
 DEFINE INDEX IF NOT EXISTS product_sku ON TABLE product COLUMNS sku UNIQUE;
@@ -29,7 +30,8 @@ DEFINE INDEX IF NOT EXISTS supplier_nit ON TABLE supplier COLUMNS nit UNIQUE;
 
 -- ─── stock movements ──────────────────────────────────────────────────────
 DEFINE TABLE IF NOT EXISTS stock_movement SCHEMAFULL;
-DEFINE FIELD IF NOT EXISTS product ON TABLE stock_movement TYPE record<product> ASSERT $value != NONE;
-DEFINE FIELD IF NOT EXISTS delta   ON TABLE stock_movement TYPE int        ASSERT $value != 0;
-DEFINE FIELD IF NOT EXISTS reason  ON TABLE stock_movement TYPE string     ASSERT $value != NONE;
-DEFINE FIELD IF NOT EXISTS at      ON TABLE stock_movement TYPE datetime   DEFAULT time::now();
+DEFINE FIELD IF NOT EXISTS product  ON TABLE stock_movement TYPE record<product> ASSERT $value != NONE;
+DEFINE FIELD IF NOT EXISTS delta    ON TABLE stock_movement TYPE int        ASSERT $value != 0;
+DEFINE FIELD IF NOT EXISTS kind_str ON TABLE stock_movement TYPE string     ASSERT $value IN ["in", "out", "adjust"];
+DEFINE FIELD IF NOT EXISTS reason   ON TABLE stock_movement TYPE string     ASSERT $value != NONE;
+DEFINE FIELD IF NOT EXISTS at       ON TABLE stock_movement TYPE datetime   DEFAULT time::now();

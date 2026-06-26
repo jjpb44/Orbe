@@ -20,7 +20,7 @@ Full Rust. One toolchain (`cargo` + `dx`).
 | Backend | Rust · Axum 0.8 |
 | Frontend | Dioxus 0.7 · RSX · signals |
 | Fullstack | Dioxus `#[server]` fns over Axum (single crate) |
-| Database | SurrealDB 2.x (Rust SDK) |
+| Database | SurrealDB 3.2 (Rust SDK, kv-mem) |
 | Architecture | Clean Arch — Core → Flow → Gate → Wire |
 | Styling | Plain CSS + design tokens (CSS vars) |
 | Build | `cargo build` (server) · `dx build --platform web` (WASM) |
@@ -34,16 +34,17 @@ No JS, no Node, no npm/bun/pnpm, no Vue/React/UnoCSS/Tailwind/Vite. Editor-agnos
 ```
 Orbe/
 ├── Backend/                       # ALL Rust — workspace + crates
-│   ├── P/orbe-api/                # the only crate for MVP
+│   ├── Q/orbe-api/                # the only crate for MVP
 │   │   ├── src/{core,flow,gate,wire,ui}/
-│   │   ├── assets/                # main.css, PWA manifest, icons
+│   │   ├── public/                # main.css, PWA manifest, icons (Dioxus default public_dir)
 │   │   ├── Cargo.toml             # features = ["server"]
 │   │   └── Dioxus.toml            # default_platform = "web"
-│   ├── R/
-│   │   ├── 1.Db/1a.Sch/           # SurrealDB schemas
-│   │   ├── 1.Db/2.Sd/             # .toon seed data
-│   │   └── 2.Cf/                  # Env.example
-│   └── A/                         # ADRs
+│   ├── W/
+│   │   ├── 1.Dat/1a.Sche/        # SurrealDB schemas
+│   │   ├── 1.Dat/2.Sed/           # .toon seed data
+│   │   ├── 2.Cfg/                 # Env.example
+│   │   └── 3.Dec/                 # presenterm decks (onboarding + client PDFs)
+│   └── Z/                         # ADRs
 ├── Frontend/                      # reserved — empty until a 2nd FE consumer
 ├── DESIGN.md                      # design system
 ├── SPEC.md                        # project specification
@@ -54,30 +55,30 @@ Orbe/
 
 ## Quick Start
 
-**Prerequisites:** Rust 1.80+, jj (jujutsu). SurrealDB 2.x + `dx` CLI come in Phase 2.
+**Prerequisites:** Rust 1.96+, jj (jujutsu), `dx` CLI (`cargo install dioxus-cli --locked`), `just` (`cargo install just` or system pkg).
+
+All commands run from project root via `just`:
 
 ```bash
-# Clone
-jj git clone https://upd.dev/jjpb/Orbe.git
-cd Orbe
-
-# Phase 1: server runs from cargo, no JS toolchain needed
-cd Backend/P/orbe-api
-cargo run                              # → http://127.0.0.1:8080
+just dev            # dx serve — fullstack hot reload (main dev loop)
+just build          # cargo build
+just test           # cargo test --lib
+just smoke          # curl smoke test (14 checks — requires `just run` first)
+just status         # jj log -n 5
+just deck           # present onboarding deck (4 slides)
+just deck-client    # export client overview PDF (envsubst + presenterm)
+just                # show all commands
 ```
 
-The page renders the empty inventory stub via Dioxus SSR + `#[server]` fn.
-For WASM hot reload (Phase 2 onward):
-```bash
-cargo install dioxus-cli --locked      # one-time
-dx serve                               # builds server + WASM, opens browser
-```
+Manual equivalents if you prefer:
 
-Prod builds:
 ```bash
-cargo build --release --features server       # native server binary
-dx build --platform web --release             # WASM bundle
-dx bundle --platform web --pwa                # PWA-ready assets
+cd Backend/Q/orbe-api
+cargo run                                    # server only, http://127.0.0.1:8080
+dx serve                                     # fullstack hot reload
+cargo build --release                        # prod binary
+dx build --platform web --release            # WASM bundle
+dx bundle --platform web --pwa               # PWA-ready assets
 ```
 
 ## Architecture
@@ -107,13 +108,14 @@ Wire (axum) →————————————┘  (same flow fns, no dupli
 | UI | `ui/` | Dioxus components + server fns |
 
 **Critical constraints (SPEC §V):**
+
 - V1: Wire ⊥ import from `core/` | `flow/` — only from `gate/ports.rs`.
 - V7: Dioxus UI ⊥ import from `gate/surreal/` — only via `#[server]` fns → flow → ports.
 
 ## Design
 
 Dark-first palette inspired by Nequi, Nu, WhatsApp — immersive, fast, magical.
-Design tokens in `Backend/P/orbe-api/public/main.css` as CSS vars (`--o-purple`, `--o-surface`, …).
+Design tokens in `Backend/Q/orbe-api/public/main.css` as CSS vars (`--o-purple`, `--o-surface`, …).
 See `DESIGN.md` for the full system.
 
 ## Version Control
@@ -131,18 +133,23 @@ MIT — see [LICENSE](LICENSE).
 
 ## Status
 
-**Phase 1 — Inventory MVP** (active development)
+**MVP complete** — all phases delivered. 14 curl smoke tests green, 11 unit tests green, 0 clippy warnings, PWA bundle ready.
 
 - [x] Project specification (SPEC.md)
 - [x] Design system (DESIGN.md)
 - [x] Conventions (CONVENTIONS.md)
 - [x] Phased delivery plan (PLAN.md)
-- [x] Backend scaffold — `orbe-api` crate compiles (`cargo build` green, 290 crates)
-- [x] SurrealDB schema — `Backend/R/1.Db/1a.Sch/Inventory.surql` (4 tables, indexes, asserts)
-- [x] Dioxus UI scaffold — `cargo run` boots Axum on :8080, browser shows empty inventory
-- [x] Design tokens — `public/main.css` exposes `--o-purple`, `--o-surface`, etc.
-- [x] 3 ADRs — SurrealDB, LayerNaming, DioxusFullstack (`Backend/A/1.ADR/`)
-- [ ] Product CRUD via #[server] fns *(Phase 2)*
-- [ ] Stock adjustments + movement log *(Phase 2)*
-- [ ] PWA manifest + icons *(Phase 3, deferred)*
-- [ ] End-to-end local flow *(Phase 2)*
+- [x] Backend scaffold — `orbe-api` crate compiles (cargo build green)
+- [x] SurrealDB schema — 4 tables (product, category, supplier, stock_movement)
+- [x] Dioxus UI scaffold — `cargo run` boots Axum on :8080
+- [x] Design tokens — CSS vars (`--o-purple`, `--o-surface`, etc.)
+- [x] 3 ADRs — SurrealDB, LayerNaming, DioxusFullstack
+- [x] Product CRUD — 7 REST routes + 7 server fns, V2/V3/V5 invariants enforced
+- [x] Stock adjustments + movement log — V4 enforced, movements DESC ordered
+- [x] PWA manifest + icons (192/512 SVG)
+- [x] WASM compile — `dx build --platform web` green (server+WASM targets)
+- [x] E2E verified — create→list→adjust→movements→delete via curl
+- [x] Clean architecture — V1/V7/V8 invariants, no leaked imports
+- [x] 0 clippy warnings, 0 unused imports
+- [x] justfile — `just serve` for main dev loop
+- [x] OrbeBackend/ OrbeFrontend/ stale dirs removed

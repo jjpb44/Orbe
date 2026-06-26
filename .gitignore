@@ -27,3 +27,7 @@ Thumbs.db
 
 # SurrealDB
 *.surql.bk
+
+# Generated PDFs (client deck output — preserve .gitkeep)
+**/out/*.pdf
+!**/out/.gitkeep

@@ -6,15 +6,16 @@ Open-source CRM for Colombian SME entrepreneurs.
 Phase 1: Inventory MVP — no auth, no billing.
 UX: Nequi, Nu, WhatsApp — fast, bold, minimal, tactile.
 Feel: immersive, magical, instant.
+Principles: reduce cognitive-load always · transmit the mood explicitly, not as decoration.
 
 ## §C — Constraints
 
 | id | constraint |
 |----|------------|
-| C1 | SurrealDB 2.x — single binary dev, cluster prod |
+| C1 | SurrealDB 3.x (Rust SDK kv-mem) — single binary dev, cluster prod |
 | C2 | Rust backend — Axum 0.8, Clean Architecture (Core/Flow/Gate/Wire) |
 | C3 | Dioxus 0.7 + RSX + signals — fullstack over Axum, WASM (web/desktop/mobile) |
-| C4 | JuanJo.Decimal file convention (P/R/A top-level) |
+| C4 | JuanJo.Decimal file convention v0.2 — QWZ top-level (Q/W/Z); Areas=3 letters, Categories=4 letters, IDs optional; framework wins on conflict |
 | C5 | jj (jujutsu) VCS — upd.dev/Codeberg primary, GitHub mirror |
 | C6 | No auth, no billing, no CI for Phase 1 |
 | C7 | Dark-first UI — no light theme MVP |
@@ -22,6 +23,10 @@ Feel: immersive, magical, instant.
 | C9 | Everything ! compile & run locally before first commit |
 | C10 | Single Rust crate `orbe-api` — `cargo build` (server) + `dx build --platform web` (WASM); no JS toolchain |
 | C11 | `.toon` for seed/fixture data; Cargo.toml/Dioxus.toml stay native |
+| C12 | presenterm for decks — `Backend/W/3.Dec/` with `3a.Onbo/onboarding.{en,es}.md` (bilingual, parity enforced) + `3b.Clnt/template.md` (client, lang-neutral placeholders); built-in `catppuccin-mocha` via `-t` flag (no custom theme, no config file); non-TTY wrapper `script -qc "..."`; client PDFs NEVER execute snippets |
+
+### Change log
+- 2026-07-13 — Top-level P/R/A → Q/W/Z (C4, C12, T2, T5, T6 paths updated). Volatility-based hierarchy: Q=active code, W=resources/config/decks, Z=archive/ADRs. See CONVENTIONS.md v0.2 §1.
 
 ## §I — Interfaces
 
@@ -88,6 +93,7 @@ DEFINE INDEX idx_category_slug ON category COLUMNS slug UNIQUE;
 | V5 | `stock_qty` ≥ 0 ∀ product |
 | V6 | `created_at` READONLY — never mutable after insert |
 | V7 | `#[server]` fns = sole FE→data path — Dioxus UI ⊥ import from `gate/surreal/` (only `gate/ports.rs` traits) |
+| V8 | SurrealDB writes datetime/record fields via parametric query w/ server-side `time::now()` + `type::thing('table',$id)` — ⊥ `.content()`/`.merge()` w/ serde `DateTime` ISO string \| tuple-as-record (SCHEMAFULL rejects both) |
 
 ## §T — Tasks
 
@@ -96,35 +102,36 @@ DEFINE INDEX idx_category_slug ON category COLUMNS slug UNIQUE;
 | id | status | task | cites |
 |----|--------|------|-------|
 | T1 | x | jj git init --colocate | C5 |
-| T2 | x | Create `Backend/P/orbe-api/Cargo.toml` — single crate, `features = ["server"]` | C10 |
+| T2 | x | Create `Backend/Q/orbe-api/Cargo.toml` — single crate, `features = ["server"]` | C10 |
 | T3 | x | Scaffold `src/{core,flow,gate,wire,ui}/` modules — stub structs, ports.rs traits | C2,V1,V7 |
-| T4 | ~ | Wire: server fn returns empty `[]`; utoipa OpenAPI deferred to P2 | C2,V1,V7 |
-| T5 | x | Write SurrealDB schema `Backend/R/1.Db/1a.Sch/Inventory.surql` | C1,I.surreal |
-| T6 | x | Write `Backend/R/2.Cf/Env.example` — SURREAL_URL, SURREAL_USER, SURREAL_PASS, ORBE_PORT | C1 |
+| T4 | x | Wire: server fn returns empty `[]`; utoipa OpenAPI deferred to P2 | C2,V1,V7 |
+| T5 | x | Write SurrealDB schema `Backend/W/1.Dat/1a.Sche/Inventory.surql` | C1,I.surreal |
+| T6 | x | Write `Backend/W/2.Cfg/Env.example` — SURREAL_URL, SURREAL_USER, SURREAL_PASS, ORBE_PORT | C1 |
 | T7 | x | Generate ADRs — SurrealDB.md, LayerNaming.md, DioxusFullstack.md | C1,C2,C10 |
-| T8 | x | `cargo build` — zero errors (290 crates, 55s cold; ~0.3s incremental) | C9 |
+| T8 | x | `cargo build` — zero errors | C9 |
 | T9 | x | `Dioxus.toml` — `default_platform = "web"`, hot reload watch | C3,C10 |
 | T10 | x | `src/ui/` — App component, routes, `#[server] fn list_products()` | C3,V7 |
 | T11 | x | Inventory page stub — renders empty list via `use_resource` | C3 |
 | T12 | x | CSS vars from DESIGN.md in `public/main.css` (Dioxus default `public_dir`) | C7,C11 |
-| T13 | . | PWA manifest + icons — deferred to P3 (not MVP-critical) | C3 |
-| T14 | ~ | `cargo run` boots Axum on :8080, browser shows "Phase 1 scaffold"; `dx` CLI install + `dx serve` deferred to P2 | C9,C10 |
+| T13 | x | PWA manifest + icons (192/512 SVG) in `public/` | C3 |
+| T14 | x | `cargo run` boots Axum on :8080; `dx serve` fullstack hot reload verified | C9,C10 |
 | T15 | . | Push to upd.dev/jjpb/Orbe.git — blocked on SSH egress (user pushes manually) | C5 |
 
 ### Phase 2: Inventory CRUD
 
 | id | status | task | cites |
 |----|--------|------|-------|
-| T16 | . | Implement core entities — Product, Category, Supplier, Movement | V2,V3,V5 |
-| T17 | . | Implement flow use cases — create/update/delete/list/adjust | V4,V5 |
-| T18 | . | Implement SurrealDB gate adapter — ports.rs impl | V1 |
-| T19 | . | Wire Axum handlers → gate ports | V1,I.api |
-| T20 | . | Dioxus signals + `#[server]` flow wrappers for inventory page | I.api,V7 |
-| T21 | . | ProductList + ProductCard + ProductForm components | C3 |
-| T22 | . | Stock adjustment modal + badge | V4,V5 |
-| T23 | . | E2E test: create product → list → adjust stock | V4,V5 |
+| T16 | x | Implement core entities — Product, Category, Supplier, Movement (+11 unit tests, V2/V3/V5 green) | V2,V3,V5 |
+| T17 | x | Implement flow use cases — create/update/delete/list/adjust (6 fns + FlowError) | V4,V5 |
+| T18 | x | Implement SurrealDB gate adapter — SurrealProductRepo + SurrealMovementLog (V8 queries) | V1,V8 |
+| T19 | x | Wire Axum handlers → gate ports (7 routes, ApiError→status) | V1,I.api |
+| T20 | x | Dioxus signals + `#[server]` flow wrappers (7 server fns, auto-registered) | I.api,V7 |
+| T21 | x | ProductList + ProductCard + InventoryPage components (rsx + Router) | C3 |
+| T22 | x | Stock adjustment — inline form in ProductCard, `#[server] adjust_stock` | V4,V5 |
+| T23 | x | E2E smoke test — 14 curl tests green (create/list/get/update/delete/adjust/movements) | V4,V5 |
 
 ## §B — Bugs
 
 | id | date | cause | fix |
 |----|------|-------|-----|
+| B1 | 2026-06-26 | SCHEMAFULL rejects serde `DateTime` ISO string + serde tuple `("table",id)` as `record<table>` on `.content()`/`.merge()` — 3 symptoms (update 500, adjust 500, movement insert fail) | V8 |

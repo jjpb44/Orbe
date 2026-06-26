@@ -32,8 +32,8 @@ Orbe/
 │   │       │   └── main.rs          # one binary, two cfg axes
 │   │       └── Cargo.toml           # features: server | web (mutually compatible via fullstack)
 │   ├── R/
-│   │   ├── 1.Db/1a.Sch/Inventory.surql
-│   │   └── 2.Cf/Env.example
+│   │   ├── 1.Dat/1a.Sche/Inventory.surql
+│   │   └── 2.Cfg/Env.example
 │   └── A/                           # docs (this file, ADRs)
 ├── Frontend/                        # empty until Phase 3 — see §6
 ├── DESIGN.md
@@ -71,16 +71,16 @@ Goal: `dx serve` boots, browser loads, `/` renders a Dioxus page, `/api/v1/inven
 
 | Task | Notes |
 |---|---|
-| `Backend/P/orbe-api/Cargo.toml` | `dioxus = { features = ["fullstack"] }`, optional `axum`/`tokio` behind `feature = "server"` |
-| `Backend/P/orbe-api/src/main.rs` | `#[cfg(feature="server")]` → axum + `serve_dioxus_application`; else `dioxus::launch(App)` |
+| `Backend/Q/orbe-api/Cargo.toml` | `dioxus = { features = ["fullstack"] }`, optional `axum`/`tokio` behind `feature = "server"` |
+| `Backend/Q/orbe-api/src/main.rs` | `#[cfg(feature="server")]` → axum + `serve_dioxus_application`; else `dioxus::launch(App)` |
 | `src/core/` | stub entities (`Product`, `Category`, `Supplier`, `StockMovement`) |
 | `src/flow/` | stub use cases returning empty vectors |
 | `src/gate/ports.rs` | `trait ProductRepo`, `trait MovementRepo` |
 | `src/gate/surreal/` | stub adapter returning `Ok(vec![])` |
 | `src/wire/` | axum router with `/api/v1/inventory/products` returning `[]`, OpenAPI doc |
 | `src/ui/` | Dioxus `App` component, `routes![home]`, one server fn `list_products()` calling the wire |
-| `Backend/R/1.Db/1a.Sch/Inventory.surql` | from SPEC §I (verbatim) |
-| `Backend/R/2.Cf/Env.example` | `SURREAL_URL`, `SURREAL_USER`, `SURREAL_PASS`, `ORBE_PORT` |
+| `Backend/W/1.Dat/1a.Sche/Inventory.surql` | from SPEC §I (verbatim) |
+| `Backend/W/2.Cfg/Env.example` | `SURREAL_URL`, `SURREAL_USER`, `SURREAL_PASS`, `ORBE_PORT` |
 | `Dioxus.toml` | `default_platform = "web"`, hot reload flags on |
 | `dx serve` | zero errors, browser renders "Orbe" + empty inventory table |
 
@@ -99,7 +99,7 @@ Goal: create a product, list it, adjust stock, see the movement — all from the
 | `src/ui/server_fns.rs` — `#[server]` wrappers around flow use cases | V7 enforcement point |
 | `src/ui/pages/inventory.rs` — list, product card, create form | Optimistic UI for instant feedback |
 | `src/ui/components/StockBadge.rs` — pulse animation from DESIGN §5 | |
-| Seed data | `Backend/R/1.Db/2.Sd/inventory.toon` (TOON format, not JSON) — see §4 |
+| Seed data | `Backend/W/1.Dat/2.Sed/inventory.toon` (TOON format, not JSON) — see §4 |
 | `cargo test` — unit tests on flow (stock ≥ 0 invariant, movement creation) | |
 | Manual E2E | create product → list → adjust stock → reload → see updated qty + movement |
 
@@ -138,7 +138,7 @@ Editor: any. Recommended: Helix, Zed, or Neovim (no LSP plugins required beyond 
 
 ## 4. `.toon` for seed data — concrete example
 
-`Backend/R/1.Db/2.Sd/inventory.toon`:
+`Backend/W/1.Dat/2.Sed/inventory.toon`:
 
 ```toon
 categories[2]{slug,name}:
@@ -169,7 +169,7 @@ Loader uses `toon-rs` or hand‑rolled 8‑line parser. JSON stays banned from v
 
 ## 6. Why no `Frontend/` dir for MVP
 
-The Dioxus app **lives inside** `Backend/P/orbe-api/src/ui/` because there is one Rust toolchain producing two targets. A separate `Frontend/` dir would only make sense if:
+The Dioxus app **lives inside** `Backend/Q/orbe-api/src/ui/` because there is one Rust toolchain producing two targets. A separate `Frontend/` dir would only make sense if:
 
 1. We adopt a second FE language (rejected — full Rust), or
 2. We publish the UI crate independently (rejected — premature).

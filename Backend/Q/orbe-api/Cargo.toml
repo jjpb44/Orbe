@@ -1,0 +1,36 @@
+[package]
+name = "orbe-api"
+version = "0.2.0"
+edition = "2021"
+publish = false
+description = "Orbe — immersive CRM for Colombian SMEs (Phase 2: inventory CRUD)"
+
+[dependencies]
+# ── Web/UI ────────────────────────────────────────────────────────────
+dioxus = { version = "0.7", features = ["fullstack", "router"] }
+axum = { version = "0.8", optional = true }
+tokio = { version = "1", features = ["full"], optional = true }
+dioxus-cli-config = { version = "0.7", optional = true }
+
+# ── Data ──────────────────────────────────────────────────────────────
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = { version = "0.4", features = ["serde"] }
+
+# ── DB ────────────────────────────────────────────────────────────────
+# SurrealDB 3.2.0-beta.2 (latest, breaking-API rewrite: Thing→RecordId,
+# sql module removed, tuple syntax gone — experimental per user).
+surrealdb = { version = "=3.2.0-beta.2", default-features = false, features = ["kv-mem"], optional = true }
+
+# ── Errors / logging ──────────────────────────────────────────────────
+thiserror = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"], optional = true }
+async-trait = "0.1"
+
+[features]
+default = ["server"]
+server = ["dioxus/server", "dep:axum", "dep:tokio", "dep:dioxus-cli-config", "dep:tracing-subscriber", "dep:surrealdb"]
+web = ["dioxus/web"]
+desktop = ["dioxus/desktop"]
+mobile = ["dioxus/mobile"]
