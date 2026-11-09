@@ -2,7 +2,7 @@
 //!
 //! Phase 2 entry point. Both surfaces share one Axum process:
 //!   - `/`                    → Dioxus SSR + hydration
-//!   - `/main.css`            → static asset (served by Dioxus)
+//!   - `/main.css`, `/sw.js`, `/manifest.json` → public/ assets (served verbatim by Dioxus)
 //!   - `/api/v1/inventory/*`  → REST handlers (crate::wire::inventory)
 //!   - `/api/products[/...]`  → `#[server]` fns (crate::ui::server_fns)
 //!
@@ -39,9 +39,6 @@ async fn main() {
     let address = fullstack_address_or_localhost();
 
     let router = Router::new()
-        // The service worker must live at the origin root with a stable path —
-        // `asset!` hashes filenames, which would break its scope.
-        .route("/sw.js", axum::routing::get(service_worker))
         .serve_dioxus_application(ServeConfig::new(), App)
         .nest(
             "/api/v1/inventory",
@@ -58,17 +55,4 @@ async fn main() {
 fn main() {
     use orbe_api::ui::App;
     dioxus::launch(App);
-}
-
-/// Serves the service worker from `public/sw.js` at `/sw.js`.
-#[cfg(feature = "server")]
-async fn service_worker() -> impl axum::response::IntoResponse {
-    const SW: &str = include_str!("../public/sw.js");
-    (
-        [(
-            axum::http::header::CONTENT_TYPE,
-            "text/javascript; charset=utf-8",
-        )],
-        SW,
-    )
 }

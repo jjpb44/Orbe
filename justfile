@@ -73,6 +73,22 @@ clean:
     cargo clean
 
 [group('lifecycle')]
+[doc('drop ship artifacts (release + dx platform dirs) — keeps the dev cache')]
+clean-ship:
+    @just _h '◆' 'clean-ship'
+    @before=$(du -sh target 2>/dev/null | cut -f1); \
+    rm -rf target/release target/dx target/server-release target/wasm-release \
+           target/server-dev target/wasm-dev target/wasm32-unknown-unknown \
+           target/x86_64-unknown-linux-gnu; \
+    printf '  target %s → %s\n' "$before" "$(du -sh target 2>/dev/null | cut -f1)"
+
+[group('lifecycle')]
+[doc('disk usage breakdown of target/')]
+target-size:
+    @just _h '◆' 'target-size'
+    @du -sh target/* 2>/dev/null | sort -h
+
+[group('lifecycle')]
 [doc('jj log — recent changes')]
 status:
     @just _h '◆' 'status'
@@ -269,7 +285,7 @@ loop:
 [doc('check required toolchain')]
 doctor:
     @just _h '◇' 'doctor'
-    @for t in cargo rustc jj just dx typst presenterm nextest; do \
+    @for t in cargo rustc jj just dx typst presenterm cargo-nextest; do \
         if command -v "$t" >/dev/null; then printf '  \033[32m✓\033[0m %s\n' "$t"; \
         else printf '  \033[31m✗\033[0m %s \033[90m(missing)\033[0m\n' "$t"; fi; \
     done

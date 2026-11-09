@@ -81,7 +81,7 @@ run typos   "spelling"                 typos --config .typos.toml
 
 if [[ "$MODE" == "full" ]]; then
     run smoke "REST+RPC smoke"         bash scripts/smoke.sh --spawn
-    run wasm  "release wasm bundle"    dx bundle --platform web --release
+    run wasm  "release wasm bundle"    bash -c "cd crates/orbe-api && dx bundle --platform web --release"
     run size  "wasm size budget"       bash scripts/wasm-size.sh --release
 fi
 

@@ -25,6 +25,7 @@ Full Rust. One toolchain (`cargo` + `dx`).
 | Styling | Plain CSS + design tokens (CSS vars) |
 | Build | `cargo build` (server) · `dx build --platform web` (WASM) |
 | CI | `just ci` — local gate, `target/ci/report.json`, no hosted runner |
+| Docs | presenterm (interactive onboarding) · typst (client PDFs) |
 | VCS | jj (jujutsu) colocated with git |
 | License | MIT |
 
@@ -73,6 +74,10 @@ just commit "msg"   # run the gate, then commit with jj (refuses on red)
 just test           # unit + flow tests (nextest)
 just smoke          # REST + RPC e2e against a private server
 just build          # cargo build
+just pwa            # release web bundle + PWA assets
+just wasm-size      # release wasm vs 500 KB gzip budget
+just clean-ship     # drop release/dx artifacts, keep the dev cache
+just target-size    # what is eating target/
 just status         # jj log
 just deck           # present the onboarding deck
 just                # essentials; `just help` for the full list
@@ -168,9 +173,15 @@ clippy clean, both targets compile.
 - [x] Local CI gate — `just ci` / `just commit`, JSON report, zero quota
 - [x] Layer boundary enforcement (V1/V7) — `just layer-check`
 - [x] Standard paths migration (Q/W/Z retired)
-- [ ] Push to `upd` + `codeberg` (SPEC T15)
-- [ ] PWA service worker bundled (T28)
-- [ ] WASM size budget enforced (T29)
-- [ ] Android smoke build (T30)
-- [ ] Client PDF via typst (T31)
-- [ ] `.toon` seed loader (T33)
+- [x] PWA — manifest, icons, `sw.js` served at `/sw.js`, registered from `App` (T28)
+- [x] WASM budget — release 415 KB gzip vs 500 KB ceiling (T29)
+- [x] Client PDF via typst — `docs/decks/client/overview.typ` (T31)
+- [x] `.toon` seed loader — `just seed` / `ORBE_SEED=1` (T33)
+- [ ] Push to `upd` + `codeberg` (T15) — manual, needs your SSH egress
+- [ ] Android smoke build (T30) — blocked: no ANDROID_HOME/NDK here
+
+### Disk
+
+`target/` is the price of a 600-crate Rust graph: ~5.6 GB of dev cache, ~13 GB once
+release + dx platform builds exist. `just target-size` breaks it down,
+`just clean-ship` deletes only the ship artifacts and keeps the incremental cache.

@@ -142,7 +142,7 @@ DEFINE FIELD IF NOT EXISTS at       ON TABLE stock_movement TYPE datetime DEFAUL
 | id | status | task | cites |
 |----|--------|------|-------|
 | T24 | x | Paths migration Q/W/Z → standard tree + root Cargo workspace | C4,C8 |
-| T25 | x | Workspace profiles — deps debuginfo off, single `target/` (5.2 GB → 3.6 GB) | C9 |
+| T25 | x | Workspace profiles — deps debuginfo off, single `target/`; `just clean-ship` / `just target-size` for disk control | C9 |
 | T26 | x | `just ci` + `just commit` + `scripts/ci-report.sh` — hash + JSON report, no quota | C6,C13 |
 | T27 | x | justfile rewrite — banner helper, non-interactive, `layer-check` | C9 |
 | T28 | x | PWA service worker — `public/sw.js` (shell cache, API bypass) served at `/sw.js`, registered from `App` | C3 |
