@@ -1,0 +1,27 @@
+[workspace]
+members = ["crates/orbe-api"]
+resolver = "2"
+
+# Single target dir at repo root: server + wasm builds share one cache.
+# Disk hygiene: keep our own crate debuggable, strip debuginfo from deps
+# (surrealdb/dioxus rlibs dominated `target/` at 5.2 GB).
+[profile.dev]
+debug = 1
+incremental = true
+
+[profile.dev.package."*"]
+debug = false
+
+[profile.dev.build-override]
+debug = false
+
+[profile.test]
+debug = 1
+
+[profile.test.package."*"]
+debug = false
+
+[profile.release]
+debug = false
+lto = "thin"
+strip = "symbols"

@@ -7,8 +7,8 @@ Covers only patterns used in this project. Open this alongside the code.
 ```sh
 just dev        # dx serve → hot reload on localhost:8080
 just build      # cargo build (check compilation)
-just test       # cargo test --lib (11 unit tests)
-just smoke      # 14 curl tests against running server
+just test       # nextest — 17 tests (domain + flow)
+just smoke      # 18 REST+RPC checks (spawns its own server)
 ```
 
 - Edit any `.rs` file → save → browser updates (no refresh)
@@ -182,7 +182,7 @@ form {
 ## 4. Codebase map
 
 ```
-Backend/Q/orbe-api/src/
+crates/orbe-api/src/
 ├── main.rs          # Entry point. Boots Axum, wires Dioxus + REST
 ├── lib.rs           # Re-exports modules
 ├── core/            # Pure domain. No framework deps.
@@ -213,7 +213,7 @@ Browser → [Dioxus WASM] → #[server] fn → flow → gate → SurrealDB
 ### Add a field to Product
 1. `src/core/product.rs`: add field to `Product` + `NewProduct`
 2. `src/gate/surreal/repo.rs`: field must exist in UPDATE query SET clause
-3. `Backend/W/1.Dat/1a.Sche/Inventory.surql`: add `DEFINE FIELD` if SCHEMAFULL
+3. `database/schema/Inventory.surql`: add `DEFINE FIELD` if SCHEMAFULL
 
 ### Add a new REST endpoint
 1. Define async fn in `src/flow/inventory.rs`

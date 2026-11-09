@@ -1,0 +1,16 @@
+# Orbe seed data — TOON only (SPEC C11). Loaded by `just seed`.
+# Prices are minor units (COP cents): 350000 = $3.500.
+
+categories[4]{slug,name}:
+  abarrotes,Abarrotes
+  bebidas,Bebidas
+  aseo,Aseo
+  snacks,Snacks
+
+products[6]{sku,name,price_cents,stock,min_stock,category_slug}:
+  A001,Coca-Cola 350ml,350000,48,12,bebidas
+  A002,Agua Cristal 600ml,250000,120,24,bebidas
+  A003,Papas Margarita 30g,180000,30,10,snacks
+  A004,Arroz Diana 1kg,420000,60,15,abarrotes
+  A005,Jabon Rey 300g,190000,25,8,aseo
+  A006,Chocolatina Jet,120000,80,20,snacks

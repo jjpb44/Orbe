@@ -1,264 +1,275 @@
-# Orbe command runner. Run `just` (no args) to list essentials.
+# Orbe command runner. `just` (no args) lists the essentials; `just help` lists everything.
+set shell := ["bash", "-euo", "pipefail", "-c"]
+set positional-arguments
 
-set dotenv-load
+_crate := "crates/orbe-api"
+_decks := "docs/decks"
+_ci    := "scripts/ci-report.sh"
 
-_crate := "Backend/Q/orbe-api"
-_decks := "Backend/W/3.Dec"
+[private]
+_h icon +name:
+    @printf '\n  \033[1m\033[95m{{icon}}\033[0m {{name}}\n  \033[36m────────────────────────────────\033[0m\n\n'
 
 default:
     @just essentials
 
-# ── essentials (default `just`) — 12 most-used ────────────────────────────────
-[doc('12 most-used commands (full: just help)')]
+# ── meta ─────────────────────────────────────────────────────────────────────
 [group('meta')]
+[doc('12 most-used commands')]
 essentials:
-    @printf '\n  \033[1m\033[35mOrbe\033[0m  \033[90m— essentials  (full: just help)\033[0m\n\n'
-    @printf '  \033[1m\033[95m▶\033[0m %-11s \033[90m%-26s\033[0m  \033[1m\033[95m◆\033[0m %-11s \033[90m%s\033[0m\n' "dev" "Hot-reload fullstack" "build" "cargo build"
-    @printf '  \033[1m\033[95m◆\033[0m %-11s \033[90m%-26s\033[0m  \033[1m\033[95m◆\033[0m %-11s \033[90m%s\033[0m\n' "check" "cargo check" "run" "cargo run"
-    @printf '  \033[1m\033[95m◆\033[0m %-11s \033[90m%-26s\033[0m  \033[1m\033[95m▲\033[0m %-11s \033[90m%s\033[0m\n' "clean" "cargo clean" "ship" "interactive platforms"
-    @printf '  \033[1m\033[95m■\033[0m %-11s \033[90m%-26s\033[0m  \033[1m\033[95m■\033[0m %-11s \033[90m%s\033[0m\n' "test" "cargo test --lib" "smoke" "curl 14 checks"
-    @printf '  \033[1m\033[95m■\033[0m %-11s \033[90m%-26s\033[0m  \033[1m\033[95m■\033[0m %-11s \033[90m%s\033[0m\n' "lint" "cargo clippy" "fix" "fmt + clippy fix"
-    @printf '  \033[1m\033[95m◆\033[0m %-11s \033[90m%-26s\033[0m  \033[1m\033[95m◇\033[0m %-11s \033[90m%s\033[0m\n' "status" "jj log" "deck" "onboarding slides"
-    @printf '\n'
+    @printf '\n  \033[1m\033[35mOrbe\033[0m  \033[90m— essentials  (full list: just help)\033[0m\n\n'
+    @printf '  \033[95m▶\033[0m %-10s \033[90m%-22s\033[0m  \033[95m■\033[0m %-10s \033[90m%s\033[0m\n' \
+        "dev" "dx serve (hot-reload)" "ci" "full local gate"
+    @printf '  \033[95m◆\033[0m %-10s \033[90m%-22s\033[0m  \033[95m■\033[0m %-10s \033[90m%s\033[0m\n' \
+        "build" "cargo build" "test" "unit tests"
+    @printf '  \033[95m◆\033[0m %-10s \033[90m%-22s\033[0m  \033[95m■\033[0m %-10s \033[90m%s\033[0m\n' \
+        "check" "cargo check" "smoke" "REST + RPC e2e"
+    @printf '  \033[95m◆\033[0m %-10s \033[90m%-22s\033[0m  \033[95m■\033[0m %-10s \033[90m%s\033[0m\n' \
+        "run" "cargo run :8080" "lint" "clippy -D warnings"
+    @printf '  \033[95m◆\033[0m %-10s \033[90m%-22s\033[0m  \033[95m■\033[0m %-10s \033[90m%s\033[0m\n' \
+        "status" "jj log" "fix" "fmt + clippy --fix"
+    @printf '  \033[95m◆\033[0m %-10s \033[90m%-22s\033[0m  \033[95m■\033[0m %-10s \033[90m%s\033[0m\n' \
+        "clean" "cargo clean" "commit" "ci + jj commit"
+    @printf '  \033[95m◇\033[0m %-10s \033[90m%-22s\033[0m  \033[95m◇\033[0m %-10s \033[90m%s\033[0m\n\n' \
+        "deck" "onboarding slides" "info" "repo stats"
 
-# ── help — full reference (7 groups) ──────────────────────────────────────────
-[doc('concise DX reference')]
+[group('meta')]
+[doc('full recipe reference')]
 help:
-    @printf '\n  \033[1m\033[35mOrbe\033[0m\n\n'
-    @printf '  \033[1m\033[95m▶ dev\033[0m\n'
-    @printf '  %-14s\033[90m %-24s\033[0m\n' "dev" "dx serve (hot-reload)"
-    @printf '\n'
-    @printf '  \033[1m\033[95m◆ lifecycle\033[0m\n'
-    @printf '  %-14s\033[90m %-24s\033[0m\t%-14s\033[90m %-24s\033[0m\n' "build" "cargo build" "check" "cargo check"
-    @printf '  %-14s\033[90m %-24s\033[0m\t%-14s\033[90m %-24s\033[0m\n' "run" "cargo run" "clean" "cargo clean"
-    @printf '  %-14s\033[90m %-24s\033[0m\n' "status" "jj log"
-    @printf '\n'
-    @printf '  \033[1m\033[95m▲ ship\033[0m\n'
-    @printf '  %-14s\033[90m %-24s\033[0m\t%-14s\033[90m %-24s\033[0m\n' "ship" "interactive platforms" "wasm" "dx build --platform web"
-    @printf '  %-14s\033[90m %-24s\033[0m\t%-14s\033[90m %-24s\033[0m\n' "android" "dx build --android" "desktop" "cargo build --feat desktop"
-    @printf '  %-14s\033[90m %-24s\033[0m\n' "pwa" "dx bundle --web --pwa"
-    @printf '\n'
-    @printf '  \033[1m\033[95m■ test\033[0m\n'
-    @printf '  %-14s\033[90m %-24s\033[0m\t%-14s\033[90m %-24s\033[0m\n' "test" "cargo test --lib" "test-all" "cargo test"
-    @printf '  %-14s\033[90m %-24s\033[0m\t%-14s\033[90m %-24s\033[0m\n' "smoke" "curl 14 checks" "lint" "cargo clippy"
-    @printf '  %-14s\033[90m %-24s\033[0m\n' "fix" "fmt + clippy fix"
-    @printf '\n'
-    @printf '  \033[1m\033[95m● db\033[0m\n'
-    @printf '  %-14s\033[90m %-24s\033[0m\t%-14s\033[90m %-24s\033[0m\n' "schema" "view surql" "surreal" "start server"
-    @printf '  %-14s\033[90m %-24s\033[0m\n' "seed" "load .toon data"
-    @printf '\n'
-    @printf '  \033[1m\033[95m◇ misc\033[0m\n'
-    @printf '  %-14s\033[90m %-24s\033[0m\t%-14s\033[90m %-24s\033[0m\n' "info" "repo stats" "open" "browser"
-    @printf '  %-14s\033[90m %-24s\033[0m\t%-14s\033[90m %-24s\033[0m\n' "run-desk" "dx run --desktop" "loop" "build+test+fix"
-    @printf '\n'
-    @printf '  \033[1m\033[95m◇ decks\033[0m\n'
-    @printf '  %-14s\033[90m %-24s\033[0m\t%-14s\033[90m %-24s\033[0m\n' "deck" "interactive onboarding" "deck-pdf" "export onboarding PDF"
-    @printf '  %-14s\033[90m %-24s\033[0m\t%-14s\033[90m %-24s\033[0m\n' "deck-client" "export client PDF" "deck-html" "export onboarding HTML"
-    @printf '\n'
+    @just --list --list-heading $'\n  \033[1m\033[35mOrbe\033[0m \033[90m— all recipes\033[0m\n\n'
 
-# · ▶ dev
-[doc('dx serve fullstack (hot-reload) — main dev loop')]
+# ── dev ──────────────────────────────────────────────────────────────────────
 [group('dev')]
+[doc('dx serve fullstack (hot-reload)')]
 dev:
-    @printf '\n  \033[1m\033[35mOrbe dev\033[0m\n'
-    @printf '  \033[36m────────────────────────\033[0m\n'
-    @printf '  \033[96mhttp://localhost:8080\033[0m\n\n'
-    @printf '  \033[90mjust open  → browser\033[0m\n'
-    @printf '  \033[90mjust smoke → test endpoints\033[0m\n'
-    @printf '  \033[90mCtrl+C     → stop\033[0m\n\n'
+    @just _h '▶' 'dev'
+    @printf '  \033[96mhttp://localhost:8080\033[0m\n  \033[90mjust open · just smoke · Ctrl+C\033[0m\n\n'
     cd {{_crate}} && dx serve
 
-# · ◆ lifecycle
-[doc('cargo build (server binary)')]
+# ── lifecycle ────────────────────────────────────────────────────────────────
 [group('lifecycle')]
+[doc('cargo build (server)')]
 build:
-    @printf '\n  \033[1m\033[95m◆\033[0m build\n  \033[36m────────────────────────\033[0m\n\n'
-    @cd {{_crate}} && cargo build
+    @just _h '◆' 'build'
+    cargo build
 
-[doc('cargo check (fast lint)')]
 [group('lifecycle')]
+[doc('cargo check')]
 check:
-    @printf '\n  \033[1m\033[95m◆\033[0m check\n  \033[36m────────────────────────\033[0m\n\n'
-    @cd {{_crate}} && cargo check
+    @just _h '◆' 'check'
+    cargo check
 
-[doc('cargo run (server binary)')]
 [group('lifecycle')]
+[doc('cargo run — REST + UI on :8080')]
 run:
-    @printf '\n  \033[1m\033[95m◆\033[0m run\n'
-    @printf '  \033[36m────────────────────────\033[0m\n'
+    @just _h '◆' 'run'
     @printf '  \033[96mhttp://localhost:8080\033[0m\n\n'
-    @printf '  \033[90mjust open  → browser\033[0m\n'
-    @printf '  \033[90mjust smoke → test endpoints\033[0m\n'
-    @printf '  \033[90mjust dev   → hot-reload\033[0m\n\n'
-    cd {{_crate}} && cargo run
+    cargo run
 
-[doc('cargo clean')]
 [group('lifecycle')]
+[doc('cargo clean (workspace target/)')]
 clean:
-    @cd {{_crate}} && cargo clean
+    @just _h '◆' 'clean'
+    cargo clean
 
-# · ▲ ship
-[doc('build to selected platforms (interactive)')]
-[group('ship')]
-ship:
-    @printf '\n  \033[1m\033[95m▲\033[0m ship\n  \033[36m────────────────────────\033[0m\n\n'
-    @printf "  WASM (web)? [y/N] " && read ans && [ "$$ans" = "y" -o "$$ans" = "Y" ] && cd {{_crate}} && dx build --platform web || true
-    @printf "  Android APK? [y/N] " && read ans && [ "$$ans" = "y" -o "$$ans" = "Y" ] && cd {{_crate}} && dx build --platform android || true
-    @printf "  Desktop? [y/N] " && read ans && [ "$$ans" = "y" -o "$$ans" = "Y" ] && cd {{_crate}} && cargo build --features desktop || true
-    @printf "  PWA bundle? [y/N] " && read ans && [ "$$ans" = "y" -o "$$ans" = "Y" ] && cd {{_crate}} && dx bundle --platform web --pwa || true
-
-[doc('jj log — recent commits')]
 [group('lifecycle')]
+[doc('jj log — recent changes')]
 status:
-    @printf '\n  \033[1m\033[95m◆\033[0m status\n  \033[36m────────────────────────\033[0m\n\n'
-    @jj log --no-graph -n 5
+    @just _h '◆' 'status'
+    jj log --no-graph -n 6
 
-# · ▲ ship
-[doc('build desktop binary (native webview)')]
+# ── ship ─────────────────────────────────────────────────────────────────────
 [group('ship')]
-desktop:
-    @printf '\n  \033[1m\033[95m◇\033[0m desktop\n  \033[36m────────────────────────\033[0m\n\n'
-    @cd {{_crate}} && cargo build --features desktop
-
-[doc('run desktop app (hot-reload webview)')]
-[group('misc')]
-run-desk:
-    @printf '\n  \033[1m\033[95m◇\033[0m run-desk\n  \033[36m────────────────────────\033[0m\n\n'
-    @cd {{_crate}} && dx run --desktop
-
 [doc('build WASM bundle')]
-[group('ship')]
 wasm:
-    @printf '\n  \033[1m\033[95m◇\033[0m wasm\n  \033[36m────────────────────────\033[0m\n\n'
-    @cd {{_crate}} && dx build --platform web
+    @just _h '▲' 'wasm'
+    cd {{_crate}} && dx build --platform web
 
-[doc('build android APK')]
 [group('ship')]
-android:
-    @printf '\n  \033[1m\033[95m◇\033[0m android\n  \033[36m────────────────────────\033[0m\n\n'
-    @cd {{_crate}} && dx build --platform android
+[doc('wasm bundle size vs 500 KB gzip budget (add --release to check what ships)')]
+wasm-size:
+    @just _h '▲' 'wasm-size'
+    bash scripts/wasm-size.sh
 
-[doc('bundle PWA (WASM + manifest + icons)')]
 [group('ship')]
+[doc('bundle release web app + PWA assets (manifest, icons, sw.js from public/)')]
 pwa:
-    @printf '\n  \033[1m\033[95m◇\033[0m pwa\n  \033[36m────────────────────────\033[0m\n\n'
-    @cd {{_crate}} && dx bundle --platform web --pwa
+    @just _h '▲' 'pwa'
+    cd {{_crate}} && dx bundle --platform web --release
 
-# · ■ test
-[doc('run unit tests')]
+[group('ship')]
+[doc('build android APK')]
+android:
+    @just _h '▲' 'android'
+    cd {{_crate}} && dx build --platform android
+
+[group('ship')]
+[doc('build native desktop binary')]
+desktop:
+    @just _h '▲' 'desktop'
+    cargo build --features desktop
+
+[group('ship')]
+[doc('run desktop app')]
+run-desktop:
+    @just _h '▲' 'run-desktop'
+    cd {{_crate}} && dx run --desktop
+
+[group('ship')]
+[doc('wasm + pwa, no prompts')]
+ship: wasm pwa
+    @just _h '▲' 'ship'
+    @bash -c 'f=$$(fd -t f orbe-api_bg.wasm target/dx -1); [ -n "$$f" ] && printf "  wasm %s raw · %s gzip\n" "$$(du -h $$f | cut -f1)" "$$(gzip -c $$f | wc -c | numfmt --to=iec)" || true'
+
+# ── test ─────────────────────────────────────────────────────────────────────
 [group('test')]
+[doc('unit tests (nextest when available)')]
 test:
-    @printf '\n  \033[1m\033[95m■\033[0m test\n  \033[36m────────────────────────\033[0m\n\n'
-    @cd {{_crate}} && cargo test --lib
+    @just _h '■' 'test'
+    @if command -v cargo-nextest >/dev/null; then cargo nextest run; else cargo test; fi
 
-[doc('run all tests (unit + integration)')]
 [group('test')]
+[doc('all tests incl. integration targets')]
 test-all:
-    @printf '\n  \033[1m\033[95m■\033[0m test-all\n  \033[36m────────────────────────\033[0m\n\n'
-    @cd {{_crate}} && cargo test
+    @just _h '■' 'test-all'
+    cargo test --workspace
 
-[doc('curl 14-endpoint smoke test suite')]
 [group('test')]
-smoke:
-    @printf '\n  \033[1m\033[95m■\033[0m smoke\n  \033[36m────────────────────────\033[0m\n\n'
-    @bash Backend/W/2.Cfg/scripts/orbe-smoke.sh
-
-[doc('cargo clippy — D warnings')]
-[group('test')]
+[doc('clippy -D warnings (all targets)')]
 lint:
-    @printf '\n  \033[1m\033[95m■\033[0m lint\n  \033[36m────────────────────────\033[0m\n\n'
-    @cd {{_crate}} && cargo clippy -- -D warnings
+    @just _h '■' 'lint'
+    cargo clippy --all-targets -- -D warnings
 
-[doc('fmt + clippy fix + check')]
 [group('test')]
+[doc('layer boundaries V1/V7')]
+layer-check:
+    @just _h '■' 'layer-check'
+    bash scripts/layer-check.sh
+
+[group('test')]
+[doc('REST + RPC end-to-end (spawns its own server)')]
+smoke:
+    @just _h '■' 'smoke'
+    bash scripts/smoke.sh --spawn
+
+[group('test')]
+[doc('fmt + clippy --fix + check')]
 fix:
-    @printf '\n  \033[1m\033[95m■\033[0m fix\n  \033[36m────────────────────────\033[0m\n\n'
-    @cd {{_crate}} && cargo fmt && cargo clippy --fix --allow-dirty -- -D warnings && cargo check
+    @just _h '■' 'fix'
+    cargo fmt --all
+    cargo clippy --fix --allow-dirty --allow-staged --all-targets -- -D warnings
+    cargo check
 
-# · ● db
+# ── ci ───────────────────────────────────────────────────────────────────────
+[group('ci')]
+[doc('local CI gate — writes target/ci/report.json')]
+ci:
+    @bash {{_ci}}
+
+[group('ci')]
+[doc('full gate: ci + smoke + wasm')]
+ci-full:
+    @bash {{_ci}} --full
+
+[group('ci')]
+[doc('run gate then commit — args: MESSAGE')]
+commit message:
+    @bash scripts/commit.sh "{{message}}"
+
+# ── db ───────────────────────────────────────────────────────────────────────
+[group('db')]
 [doc('view SurrealQL schema')]
-[group('db')]
 schema:
-    @printf '\n  \033[1m\033[95m●\033[0m schema\n  \033[36m────────────────────────\033[0m\n\n'
-    @bat Backend/W/1.Dat/1a.Sche/Inventory.surql
+    @just _h '●' 'schema'
+    bat database/schema/Inventory.surql
 
-[doc('start SurrealDB server (memory, trace)')]
 [group('db')]
+[doc('start SurrealDB (memory, trace)')]
 surreal:
-    @printf '\n  \033[1m\033[95m●\033[0m surreal\n  \033[36m────────────────────────\033[0m\n\n'
-    @surreal start --log trace --user root --pass root memory
+    @just _h '●' 'surreal'
+    surreal start --log trace --user root --pass root memory
 
-[doc('load .toon seed data into DB')]
 [group('db')]
+[doc('boot with database/seeds/inventory.toon loaded (ORBE_SEED=1)')]
 seed:
-    @printf '\n  \033[1m\033[95m●\033[0m seed\n  \033[36m────────────────────────\033[0m\n\n'
-    @echo "TODO: wire .toon seed loader"
+    @just _h '●' 'seed'
+    @printf '  \033[96mhttp://localhost:8080\033[0m  \033[90mseeded · idempotent · Ctrl+C to stop\033[0m\n\n'
+    ORBE_SEED=1 cargo run
 
-# · ◇ misc
-[doc('repo stats — files + size')]
-[group('misc')]
-info:
-    @printf '\n  \033[1m\033[95m▲\033[0m info\n  \033[36m────────────────────────\033[0m\n\n'
-    @printf "files  "; jj file list | wc -l
-    @printf "size   "; du -sh --exclude=target --exclude=.git --exclude=.jj .
-
-[doc('open browser at localhost:8080')]
-[group('misc')]
-open:
-    @printf '\n  \033[1m\033[95m▲\033[0m open\n  \033[36m────────────────────────\033[0m\n\n'
-    @xdg-open http://localhost:8080 2>/dev/null || open http://localhost:8080 2>/dev/null || echo "→ http://localhost:8080"
-
-[doc('loop: fmt → clippy fix → build → test')]
-[group('misc')]
-loop:
-    @printf '\n  \033[1m\033[95m▲\033[0m loop\n  \033[36m────────────────────────\033[0m\n\n'
-    @cd {{_crate}} && cargo fmt && cargo clippy --fix --allow-dirty -- -D warnings && cargo build && cargo test --lib && echo "✅ all green"
-
-# · ◇ decks
-[doc('present onboarding deck EN (terminal, interactive, runs +exec_replace)')]
+# ── decks ────────────────────────────────────────────────────────────────────
 [group('decks')]
-deck:
-    @just deck-en
+[doc('present onboarding deck (EN)')]
+deck: deck-en
 
-[doc('present onboarding deck EN (alias of `deck`)')]
 [group('decks')]
+[doc('present onboarding deck EN — interactive terminal')]
 deck-en:
-    @printf '\n  \033[1m\033[95m◇\033[0m deck-en\n  \033[36m────────────────────────\033[0m\n\n'
-    presenterm -t catppuccin-mocha {{_decks}}/3a.Onbo/onboarding.en.md -X
+    @just _h '◇' 'deck-en'
+    presenterm -t catppuccin-mocha {{_decks}}/onboarding/onboarding.en.md -X
 
+[group('decks')]
 [doc('present onboarding deck ES')]
-[group('decks')]
 deck-es:
-    @printf '\n  \033[1m\033[95m◇\033[0m deck-es\n  \033[36m────────────────────────\033[0m\n\n'
-    presenterm -t catppuccin-mocha {{_decks}}/3a.Onbo/onboarding.es.md -X
+    @just _h '◇' 'deck-es'
+    presenterm -t catppuccin-mocha {{_decks}}/onboarding/onboarding.es.md -X
 
-[doc('export both onboarding decks as PDF (static; +exec_replace rendered as code)')]
 [group('decks')]
+[doc('export onboarding decks as PDF (needs a TTY — that is presenterm, not us)')]
 deck-pdf:
-    @printf '\n  \033[1m\033[95m◇\033[0m deck-pdf\n  \033[36m────────────────────────\033[0m\n\n'
-    script -qc "stty rows 50 cols 200; presenterm -t catppuccin-mocha {{_decks}}/3a.Onbo/onboarding.en.md --export-pdf -o {{_decks}}/3a.Onbo/onboarding.en.pdf" /dev/null
-    script -qc "stty rows 50 cols 200; presenterm -t catppuccin-mocha {{_decks}}/3a.Onbo/onboarding.es.md --export-pdf -o {{_decks}}/3a.Onbo/onboarding.es.pdf" /dev/null
-    @printf '  \033[96m→ {{_decks}}/3a.Onbo/onboarding.en.pdf + onboarding.es.pdf\033[0m\n'
+    @just _h '◇' 'deck-pdf'
+    script -qc "stty rows 50 cols 200; presenterm -t catppuccin-mocha {{_decks}}/onboarding/onboarding.en.md --export-pdf -o {{_decks}}/onboarding/onboarding.en.pdf" /dev/null
+    script -qc "stty rows 50 cols 200; presenterm -t catppuccin-mocha {{_decks}}/onboarding/onboarding.es.md --export-pdf -o {{_decks}}/onboarding/onboarding.es.pdf" /dev/null
 
-[doc('export both onboarding decks as HTML')]
 [group('decks')]
+[doc('export onboarding decks as HTML')]
 deck-html:
-    @printf '\n  \033[1m\033[95m◇\033[0m deck-html\n  \033[36m────────────────────────\033[0m\n\n'
-    script -qc "stty rows 50 cols 200; presenterm -t catppuccin-mocha {{_decks}}/3a.Onbo/onboarding.en.md --export-html -o {{_decks}}/3a.Onbo/onboarding.en.html" /dev/null
-    script -qc "stty rows 50 cols 200; presenterm -t catppuccin-mocha {{_decks}}/3a.Onbo/onboarding.es.md --export-html -o {{_decks}}/3a.Onbo/onboarding.es.html" /dev/null
+    @just _h '◇' 'deck-html'
+    script -qc "stty rows 50 cols 200; presenterm -t catppuccin-mocha {{_decks}}/onboarding/onboarding.en.md --export-html -o {{_decks}}/onboarding/onboarding.en.html" /dev/null
+    script -qc "stty rows 50 cols 200; presenterm -t catppuccin-mocha {{_decks}}/onboarding/onboarding.es.md --export-html -o {{_decks}}/onboarding/onboarding.es.html" /dev/null
 
-[doc('check structural parity between onboarding.en.md and onboarding.es.md')]
 [group('decks')]
+[doc('EN/ES structural parity check')]
 deck-parity:
-    @printf '\n  \033[1m\033[95m◇\033[0m deck-parity\n  \033[36m────────────────────────\033[0m\n\n'
-    bash {{_decks}}/scripts/check-bilingual-parity.sh {{_decks}}/3a.Onbo/onboarding.en.md {{_decks}}/3a.Onbo/onboarding.es.md
+    @just _h '◇' 'deck-parity'
+    bash scripts/check-bilingual-parity.sh
 
-[doc('export client overview PDF — args: CLIENT DATE SUMMARY NEXT CONTACT (positional)')]
 [group('decks')]
-deck-client CLIENT DATE='today' SUMMARY='Update in progress.' NEXT='TBD' CONTACT='Orbe team':
-    @printf '\n  \033[1m\033[95m◇\033[0m deck-client\n  \033[36m────────────────────────\033[0m\n\n'
-    @mkdir -p {{_decks}}/3b.Clnt/out
-    env CLIENT_NAME="{{CLIENT}}" DATE="{{DATE}}" STATUS_SUMMARY="{{SUMMARY}}" NEXT_MILESTONES="{{NEXT}}" CONTACT="{{CONTACT}}" \
-        envsubst < {{_decks}}/3b.Clnt/template.md > /tmp/orbe-client.md
-    script -qc "stty rows 50 cols 200; presenterm -t catppuccin-mocha /tmp/orbe-client.md --export-pdf -o {{_decks}}/3b.Clnt/out/orbe-overview.pdf" /dev/null
-    @printf '  \033[96m→ {{_decks}}/3b.Clnt/out/orbe-overview.pdf\033[0m\n'
+[doc('client PDF via typst — positional: CLIENT DATE SUMMARY NEXT CONTACT')]
+deck-client client date='today' summary='Update in progress.' next='TBD' contact='Orbe team':
+    @just _h '◇' 'deck-client'
+    mkdir -p {{_decks}}/client/out
+    typst compile {{_decks}}/client/overview.typ \
+        --input "client=$1" --input "date=$2" --input "summary=$3" \
+        --input "next=$4" --input "contact=$5" \
+        {{_decks}}/client/out/orbe-overview.pdf
+    @printf '  \033[96m→ {{_decks}}/client/out/orbe-overview.pdf\033[0m\n'
+
+# ── misc ─────────────────────────────────────────────────────────────────────
+[group('misc')]
+[doc('repo stats — files, size, target size')]
+info:
+    @just _h '◇' 'info'
+    @printf 'files   %s\n' "$(jj file list 2>/dev/null | wc -l)"
+    @printf 'source  %s\n' "$(du -sh --exclude=target --exclude=.git --exclude=.jj . | cut -f1)"
+    @printf 'target  %s\n' "$(du -sh target 2>/dev/null | cut -f1)"
+
+[group('misc')]
+[doc('open browser at :8080')]
+open:
+    @xdg-open http://localhost:8080 2>/dev/null || echo "→ http://localhost:8080"
+
+[group('misc')]
+[doc('fmt → clippy fix → build → test')]
+loop:
+    @just fix
+    @just build
+    @just test
+
+[group('misc')]
+[doc('check required toolchain')]
+doctor:
+    @just _h '◇' 'doctor'
+    @for t in cargo rustc jj just dx typst presenterm nextest; do \
+        if command -v "$t" >/dev/null; then printf '  \033[32m✓\033[0m %s\n' "$t"; \
+        else printf '  \033[31m✗\033[0m %s \033[90m(missing)\033[0m\n' "$t"; fi; \
+    done
