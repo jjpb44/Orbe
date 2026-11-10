@@ -144,11 +144,13 @@ See `DESIGN.md` for the full system.
 
 [jujutsu](https://github.com/jj-vcs/jj) (jj), colocated with git.
 
-| Remote | Role |
-|---|---|
-| `upd` — `upd-git@ssh.upd.dev:jjpb/Orbe.git` | private primary |
-| `codeberg` — `ssh://git@codeberg.org/SethDev/Orbe.git` | public mirror |
-| `github` | optional mirror (add when needed) |
+| Remote | Role | URL |
+|---|---|---|
+| `upd` | private primary | `upd-git@ssh.upd.dev:jjpb/Orbe.git` |
+| `codeberg` | public mirror | `ssh://git@codeberg.org/SethDev/Orbe.git` |
+| `github` | public mirror | `git@github.com:jjpb44/Orbe.git` |
+
+`just push` fans `main` out to all three; `jj bookmark list --all-remotes` shows the sync state.
 
 ```bash
 jj git clone upd-git@ssh.upd.dev:jjpb/Orbe.git   # maintainers
@@ -177,7 +179,7 @@ clippy clean, both targets compile.
 - [x] WASM budget — release 415 KB gzip vs 500 KB ceiling (T29)
 - [x] Client PDF via typst — `docs/decks/client/overview.typ` (T31)
 - [x] `.toon` seed loader — `just seed` / `ORBE_SEED=1` (T33)
-- [ ] Push to `upd` + `codeberg` (T15) — manual, needs your SSH egress
+- [x] Pushed to `upd` (private) + `codeberg` + `github` mirrors (T15)
 - [ ] Android smoke build (T30) — blocked: no ANDROID_HOME/NDK here
 
 ### Disk

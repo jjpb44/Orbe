@@ -16,7 +16,7 @@ Principles: reduce cognitive-load always · transmit the mood explicitly, not as
 | C2 | Rust backend — Axum 0.8, Clean Architecture (Core/Flow/Gate/Wire) |
 | C3 | Dioxus 0.7 + RSX + signals — fullstack over Axum, WASM (web/desktop/mobile) |
 | C4 | Standard paths — `crates/orbe-api/`, `database/{schema,seeds}/`, `config/`, `scripts/`, `docs/{decisions,decks,archive}/`. No numeric-prefixed dirs. Framework names (`src/`, `public/`) never renamed. See CONVENTIONS §1 |
-| C5 | jj (jujutsu) VCS — remotes: `upd` (private primary) · `codeberg` (public mirror) · `github` (optional mirror) |
+| C5 | jj (jujutsu) VCS — remotes: `upd` (private primary, `upd-git@ssh.upd.dev:jjpb/Orbe.git`) · `codeberg` (public mirror, `SethDev/Orbe`) · `github` (public mirror, `jjpb44/Orbe`). All three track `main`; `just push` fans out |
 | C6 | No auth, no billing, no hosted CI for Phase 1 — local gate only (`just ci`) |
 | C7 | Dark-first UI — no light theme MVP |
 | C8 | Single monorepo, single crate `orbe-api` under a root Cargo workspace. A second crate only when a second consumer exists |
@@ -122,7 +122,7 @@ DEFINE FIELD IF NOT EXISTS at       ON TABLE stock_movement TYPE datetime DEFAUL
 | T12 | x | CSS vars from DESIGN.md in `public/main.css` | C7,C11 |
 | T13 | x | PWA manifest + icons (192/512 SVG) in `public/` | C3 |
 | T14 | x | `cargo run` boots Axum on :8080; `dx serve` fullstack hot reload verified | C9,C10 |
-| T15 | . | Push to `upd` (primary) + `codeberg` mirror — blocked on SSH egress (user pushes manually) | C5 |
+| T15 | x | Pushed: `upd` (private primary) + `codeberg` + `github` mirrors — all at `main` 0c20e44a | C5 |
 
 ### Phase 2: Inventory CRUD
 

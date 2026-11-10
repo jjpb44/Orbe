@@ -188,6 +188,15 @@ ci-full:
     @bash {{_ci}} --full
 
 [group('ci')]
+[doc('push main to upd (primary) + codeberg + github mirrors')]
+push:
+    @just _h '▲' 'push'
+    jj git push --remote upd --bookmark main
+    jj git push --remote codeberg --bookmark main
+    jj git push --remote github --bookmark main
+    @jj bookmark list --all-remotes
+
+[group('ci')]
 [doc('run gate then commit — args: MESSAGE')]
 commit message:
     @bash scripts/commit.sh "{{message}}"
