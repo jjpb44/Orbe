@@ -122,7 +122,7 @@ DEFINE FIELD IF NOT EXISTS at       ON TABLE stock_movement TYPE datetime DEFAUL
 | T12 | x | CSS vars from DESIGN.md in `public/main.css` | C7,C11 |
 | T13 | x | PWA manifest + icons (192/512 SVG) in `public/` | C3 |
 | T14 | x | `cargo run` boots Axum on :8080; `dx serve` fullstack hot reload verified | C9,C10 |
-| T15 | x | Pushed: `upd` (private primary) + `codeberg` + `github` mirrors — all at `main` 0c20e44a | C5 |
+| T15 | x | Pushed: `upd` (private primary) + `codeberg` + `github` mirrors — all three track `main` (verified via `git ls-remote`); `just push` fans out | C5 |
 
 ### Phase 2: Inventory CRUD
 
