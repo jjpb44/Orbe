@@ -63,7 +63,8 @@ Patterns:
 ## 6. Component Tokens (CSS classes, applied via `class="o-btn"`)
 
 Tokens are plain CSS classes that consume the CSS vars from §2.
-Source-of-truth lives in `crates/orbe-api/assets/main.css`.
+Source-of-truth lives in `crates/orbe-api/public/main.css`; the vocabulary below
+is the one the RSX actually uses (`o-card__head`, `o-card__title`, …).
 **No UnoCSS, no Tailwind, no utility-class soup.**
 
 | Token | Description |
@@ -76,6 +77,15 @@ Source-of-truth lives in `crates/orbe-api/assets/main.css`.
 | `o-badge-ok` | `background: var(--o-teal)`, `color: var(--o-black)` |
 | `o-badge-low` | red bg, white text (stock < 5) |
 | `o-table` | full-width, `var(--o-surface-alt)` header, alternating row tints |
+| `o-shell` | page frame — max-width 720px, mobile-first, 24px gutter |
+| `o-topbar` / `o-topbar__title` | app bar: wordmark with purple→teal gradient text |
+| `o-nav` / `o-nav__link` | topbar navigation, pill links, muted → text on hover |
+| `o-card__head` / `o-card__title` / `o-card__body` | card header/body split |
+| `o-card__meta` | secondary line (name, stock) — mono, tabular numerals |
+| `o-card--row` | list row: data on the left, inline action on the right |
+| `o-list` | unstyled list container (rows are cards) |
+| `o-form` / `o-form--inline` | stacked form; inline variant for the stock adjust row |
+| `o-error` | inline contextual error (danger bar + tinted background) |
 
 ## 7. Iconography
 

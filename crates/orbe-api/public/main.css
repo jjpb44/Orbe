@@ -1,21 +1,23 @@
-/* Orbe — Phase 1 scaffold styles.
-   Source of truth for tokens: ../../../../DESIGN.md §10 (CSS variables).
-   Keep these in sync with DESIGN.md. */
+/* Orbe — design system.
+   Source of truth for tokens: DESIGN.md §2 (palette) and §6 (components).
+   Keep the two in sync. Dark-first (C7): no light theme in the MVP. */
 
 :root {
   --o-purple: #6B21A8;
+  --o-purple-light: #9333EA;
   --o-purple-50: rgba(107, 33, 168, 0.5);
   --o-black: #0A0A0A;
   --o-teal: #2DD4BF;
   --o-surface: #161616;
   --o-surface-2: #1E1E1E;
+  --o-surface-alt: #1E1E1E;
   --o-text: #F5F5F5;
   --o-muted: #A3A3A3;
   --o-danger: #EF4444;
   --o-success: #22C55E;
 
-  --o-radius: 8px;
-  --o-radius-sm: 4px;
+  --o-radius: 12px;
+  --o-radius-sm: 8px;
   --o-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 
   --o-space: 16px;
@@ -44,33 +46,186 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.o-root {
-  max-width: 960px;
+a { color: inherit; text-decoration: none; }
+
+/* ── shell ───────────────────────────────────────────────────────────────── */
+.o-shell {
+  max-width: 720px;
   margin: 0 auto;
   padding: var(--o-space-lg);
+  min-height: 100vh;
 }
 
-.o-title {
-  color: var(--o-purple);
-  font-size: 40px;
+.o-main { display: block; }
+
+/* ── topbar ──────────────────────────────────────────────────────────────── */
+.o-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--o-space);
+  padding-bottom: var(--o-space);
+  margin-bottom: var(--o-space-lg);
+  border-bottom: 1px solid var(--o-surface-2);
+}
+
+.o-topbar__title {
+  margin: 0;
+  font-size: 24px;
   font-weight: 700;
-  margin: 0 0 var(--o-space);
   letter-spacing: -0.02em;
+  background: linear-gradient(120deg, var(--o-purple-light), var(--o-teal));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
-.o-muted { color: var(--o-muted); }
-.o-danger { color: var(--o-danger); }
+.o-nav { display: flex; gap: var(--o-space-sm); }
 
+.o-nav__link {
+  padding: 6px 12px;
+  border-radius: 999px;
+  color: var(--o-muted);
+  font-size: 14px;
+  transition: color var(--o-dur-fast) var(--o-ease),
+              background var(--o-dur-fast) var(--o-ease);
+}
+
+.o-nav__link:hover { color: var(--o-text); background: var(--o-surface); }
+.o-nav__link:focus-visible { outline: 2px solid var(--o-purple-light); outline-offset: 2px; }
+
+/* ── card ───────────────────────────────────────────────────────────────── */
 .o-card {
   background: var(--o-surface);
   border: 1px solid var(--o-surface-2);
   border-radius: var(--o-radius);
-  padding: var(--o-space-lg);
+  padding: var(--o-space);
   box-shadow: var(--o-shadow);
 }
 
-.o-card-title {
-  margin: 0 0 var(--o-space);
-  font-size: 20px;
+.o-card--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--o-space);
+  flex-wrap: wrap;
+  padding: 12px var(--o-space);
+  margin-bottom: var(--o-space-sm);
+}
+
+.o-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--o-space);
+  margin-bottom: var(--o-space);
+}
+
+.o-card__title {
+  margin: 0;
+  font-size: 18px;
   font-weight: 600;
+}
+
+.o-card__body { display: block; }
+
+/* Row layout: SKU · name · stock as separated data, not one run-on line. */
+.o-card--row .o-card__body {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.o-card__meta {
+  color: var(--o-muted);
+  font-size: 14px;
+}
+
+/* ── list ───────────────────────────────────────────────────────────────── */
+.o-list { list-style: none; margin: 0; padding: 0; }
+
+/* ── forms ──────────────────────────────────────────────────────────────── */
+.o-form { display: flex; flex-direction: column; gap: var(--o-space-sm); }
+.o-form--inline { flex-direction: row; align-items: center; gap: var(--o-space-sm); flex-wrap: wrap; }
+
+.o-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--o-muted);
+}
+
+.o-form input,
+.o-form select {
+  background: var(--o-surface-alt);
+  border: 1px solid var(--o-surface-2);
+  border-radius: var(--o-radius-sm);
+  color: var(--o-text);
+  font-family: var(--o-font-display);
+  font-size: 15px;
+  padding: 10px 12px;
+  min-height: 44px;
+  transition: border-color var(--o-dur-fast) var(--o-ease),
+              box-shadow var(--o-dur-fast) var(--o-ease);
+}
+
+.o-form input:focus,
+.o-form select:focus {
+  outline: none;
+  border-color: var(--o-purple-light);
+  box-shadow: 0 0 0 2px var(--o-purple-50);
+}
+
+.o-form--inline input,
+.o-form--inline select { min-height: 36px; padding: 6px 10px; font-size: 14px; }
+
+/* ── buttons ────────────────────────────────────────────────────────────── */
+.o-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--o-purple);
+  color: var(--o-text);
+  border: 1px solid transparent;
+  border-radius: var(--o-radius-sm);
+  padding: 8px 16px;
+  min-height: 44px;
+  font-family: var(--o-font-display);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter var(--o-dur-fast) var(--o-ease),
+              transform var(--o-dur-fast) var(--o-ease);
+}
+
+.o-btn:hover { filter: brightness(1.15); }
+.o-btn:active { transform: scale(0.97); }
+.o-btn:focus-visible { outline: 2px solid var(--o-purple-light); outline-offset: 2px; }
+
+.o-btn--primary { background: linear-gradient(120deg, var(--o-purple), var(--o-purple-light)); }
+
+.o-form--inline .o-btn { min-height: 36px; padding: 6px 14px; font-size: 14px; }
+
+/* ── states ─────────────────────────────────────────────────────────────── */
+.o-error {
+  margin: var(--o-space-sm) 0 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--o-danger);
+  border-radius: var(--o-radius-sm);
+  background: rgba(239, 68, 68, 0.1);
+  color: #FCA5A5;
+  font-size: 14px;
+}
+
+/* Numbers and stock read as data, not prose (DESIGN §3). */
+.o-card strong,
+.o-card__meta {
+  font-family: var(--o-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
 }

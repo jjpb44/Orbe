@@ -172,7 +172,14 @@ Hand-rolled loader in `gate/surreal/seed.rs` — 8-line parser, no extra dep. Ca
 - `br` owns the workflow (claim, close, priority). The remote tracker is the
   public face — never edit the same issue in both places.
 
-## 9. What we DON'T do
+## 9. Web gotchas (Dioxus 0.7)
+
+- **Never `asset!()` for CSS/manifest/icon in SSR** — it leaks an absolute filesystem path into the HTML. Use root-relative paths (`/main.css`); `public/` is served from the web root in dev and release.
+- **The SSR page needs a client script** — if the server finds no `index.html` next to the binary it serves a script-less template and the UI never hydrates ("Cargando…" forever). `main.rs::serve_config()` writes a dev index when needed.
+- **`Link` needs the router scope** — inside a `#[layout]` component it panics. Layout shells use plain `<a href>`; `Link` is for route components.
+- **`dx serve` does not build the client in this workspace** — use `just dev` (build bundle + run the produced server).
+
+## 10. What we DON'T do
 
 - ❌ JS, TS, Node, npm, pnpm, bun, deno, vite, webpack, esbuild, swc, rollup, parsec.
 - ❌ Vue, React, Svelte, Solid, vanilla-bean, ant runtime.

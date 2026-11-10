@@ -10,12 +10,37 @@ use crate::ui::server_fns::{
 
 #[derive(Routable, Clone, Debug, PartialEq)]
 pub enum Route {
+    // The shell (topbar + nav) wraps every route, so `Link` always has the
+    // router context and the user can always reach the inventory.
+    #[layout(Shell)]
     #[route("/")]
     Home {},
     #[route("/inventory")]
     Inventory {},
     #[route("/inventory/new")]
     InventoryNew {},
+}
+
+/// App chrome — rendered around the matched route (Dioxus `#[layout]`).
+#[component]
+pub fn Shell() -> Element {
+    rsx! {
+        div { class: "o-shell",
+            header { class: "o-topbar",
+                h1 { class: "o-topbar__title", "Orbe" }
+                nav { class: "o-nav",
+                    // Plain anchors: a `#[layout]` component renders outside the
+                    // router scope, where `Link` panics ("no parent router").
+                    a { href: "/", class: "o-nav__link", "Inicio" }
+                    a { href: "/inventory", class: "o-nav__link", "Inventario" }
+                    a { href: "/inventory/new", class: "o-nav__link", "Nuevo" }
+                }
+            }
+            main { class: "o-main",
+                Outlet::<Route> {}
+            }
+        }
+    }
 }
 
 #[component]
@@ -31,7 +56,7 @@ pub fn Inventory() -> Element {
         section { class: "o-card",
             header { class: "o-card__head",
                 h2 { class: "o-card__title", "Productos" }
-                Link { to: Route::InventoryNew {}, class: "o-btn o-btn--primary", "+ Nuevo" }
+                a { href: "/inventory/new", class: "o-btn o-btn--primary", "+ Nuevo" }
             }
             div { class: "o-card__body",
                 match products.read().as_ref() {

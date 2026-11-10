@@ -25,18 +25,10 @@ pub fn App() -> Element {
         // dx serves everything in `public/` from the web root, both dev and release.
         document::Title { "Orbe · Inventario" }
         document::Stylesheet { href: "/main.css" }
-        document::Link { rel: "manifest", href: "/manifest.json" }
-        document::Link { rel: "icon", href: "/icon-192.svg", r#type: "image/svg+xml" }
+        link { rel: "manifest", href: "/manifest.json" }
+        link { rel: "icon", href: "/icon-192.svg", r#type: "image/svg+xml" }
         meta { name: "theme-color", content: "#6B21A8" }
         meta { name: "description", content: "Orbe — CRM de inventario para pymes colombianas." }
-        div { class: "o-shell",
-            header { class: "o-topbar",
-                h1 { class: "o-topbar__title", "Orbe" }
-                span { class: "o-topbar__sub", "Inventario" }
-            }
-            main { class: "o-main",
-                Router::<crate::ui::inventory::Route> {}
-            }
-        }
+        Router::<crate::ui::inventory::Route> {}
     }
 }

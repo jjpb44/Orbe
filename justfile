@@ -40,11 +40,16 @@ help:
 
 # ── dev ──────────────────────────────────────────────────────────────────────
 [group('dev')]
-[doc('dx serve fullstack (hot-reload)')]
+[doc('build the web bundle and serve it (SSR + hydration + assets)')]
 dev:
     @just _h '▶' 'dev'
-    @printf '  \033[96mhttp://localhost:8080\033[0m\n  \033[90mjust open · just smoke · Ctrl+C\033[0m\n\n'
-    cd {{_crate}} && dx serve
+    bash scripts/dev.sh
+
+[group('dev')]
+[doc('same as dev, but a release bundle (no dev overlay)')]
+dev-release:
+    @just _h '▶' 'dev-release'
+    bash scripts/dev.sh --release
 
 # ── lifecycle ────────────────────────────────────────────────────────────────
 [group('lifecycle')]
@@ -240,8 +245,7 @@ surreal:
 [doc('boot with database/seeds/inventory.toon loaded (ORBE_SEED=1)')]
 seed:
     @just _h '●' 'seed'
-    @printf '  \033[96mhttp://localhost:8080\033[0m  \033[90mseeded · idempotent · Ctrl+C to stop\033[0m\n\n'
-    ORBE_SEED=1 cargo run
+    ORBE_SEED=1 bash scripts/dev.sh
 
 # ── decks ────────────────────────────────────────────────────────────────────
 [group('decks')]

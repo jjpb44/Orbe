@@ -1,208 +1,105 @@
 # Orbe
 
-Open-source CRM built for small-medium entrepreneurs in Colombia.
-Start with inventory. Grow from there.
+CRM de inventarios para pymes colombianas. Hoy: productos, stock y movimientos.
+Después: clientes, ventas y **Orbe Cloud** (alojamiento gestionado, plan mensual).
 
-## What
-
-Orbe is a pragmatic CRM that respects your time. Phase 1 delivers an
-inventory MVP — track products, categories, stock movements, nothing else.
-No auth, no billing, no bloat. Just a fast, local-first tool that works.
-
-Future phases layer in customer management, sales, and SaaS hosting.
-
-## Stack
-
-Full Rust. One toolchain (`cargo` + `dx`).
-
-| Layer | Choice |
+| | |
 |---|---|
-| Backend | Rust · Axum 0.8 |
-| Frontend | Dioxus 0.7 · RSX · signals |
-| Fullstack | Dioxus `#[server]` fns over Axum (single crate, Cargo workspace) |
-| Database | SurrealDB 3.2 (Rust SDK, kv-mem) |
-| Architecture | Clean Arch — Core → Flow → Gate → Wire |
-| Styling | Plain CSS + design tokens (CSS vars) |
-| Build | `cargo build` (server) · `dx build --platform web` (WASM) |
-| CI | `just ci` — local gate, `target/ci/report.json`, no hosted runner |
-| Docs | presenterm (interactive onboarding) · typst (client PDFs) |
-| VCS | jj (jujutsu) colocated with git |
-| License | MIT |
+| **Stack** | Rust 1.97 · Axum 0.8 · Dioxus 0.7 (WASM) · SurrealDB 3.2 · CSS con tokens · `just` · `jj` |
+| **Puertos (local)** | web `:8080` · REST `:8080/api/v1/inventory` · RPC Dioxus `:8080/api` |
+| **Estado** | inventario MVP (productos · stock · movimientos) · web + Android APK |
+| **Rama de trabajo** | `develop` (`main` = release) |
+| **Licencia** | AGPL-3.0-only · [modelo comercial](docs/legal/COMMERCIAL.md) |
+| **Contexto completo** | [SPEC.md](SPEC.md) · [CONVENTIONS.md](CONVENTIONS.md) · [DESIGN.md](DESIGN.md) |
 
-No JS, no Node, no npm/bun/pnpm, no Vue/React/UnoCSS/Tailwind/Vite. Editor-agnostic.
+---
 
-## Structure
+## Arquitectura
 
+```mermaid
+flowchart LR
+  U["Navegador"] --> UI["Dioxus UI<br/>WASM · SSR"]
+  U -->|"REST /api/v1/inventory"| W["Wire (axum)"]
+  UI -->|"#[server] /api"| F["Flow · casos de uso"]
+  W --> F
+  F --> P["Gate · puertos (traits)"]
+  P --> S[("SurrealDB 3.2<br/>kv-mem")]
 ```
+
+- Un solo crate (`crates/orbe-api`), Clean Architecture por dentro: `core → flow → gate → wire/ui`.
+- Los `#[server]` son el **único** camino de la UI a los datos (SPEC V7); el REST usa los mismos casos de uso.
+- El dinero es `i64` en centavos (V9). Las dependencias de SurrealDB se escriben con queries paramétricas (V8).
+- Invariantes verificados en CI local: `just layer-check` (fronteras de capa), `just test` (V2–V5).
+
+## Inicio rápido
+
+```bash
+just dev      # construye el bundle web y lo sirve en http://localhost:8080
+just seed     # igual, con datos de ejemplo (database/seeds/inventory.toon)
+just dev-release  # bundle de release (sin overlay de desarrollo)
+just ci       # gate local: fmt · clippy · capas · tests · build · paridad de decks
+just commit "msg"   # corre el gate y commitea con jj (no commitea en rojo)
+```
+
+Sin Docker ni Node: `cargo` + `dx` + `just` y nada más.
+
+## Verificación
+
+| Suite | Qué cubre | Comando |
+|---|---|---|
+| Dominio | invariantes V2/V3/V5 (sku único, slug único, stock ≥ 0) | `just test` |
+| Flujo | oversell → error sin movimiento, 404s, stock a cero (fake port) | `just test` |
+| Capas | V1/V7: nadie importa `gate/surreal` desde `wire/` o `ui/` | `just layer-check` |
+| E2E | 18 checks REST + RPC contra un server que se levanta solo | `just smoke` |
+| CI | todo lo anterior + fmt, clippy `-D warnings`, build | `just ci` · `just ci-full` |
+
+CI **local y sin cuota**: `just ci` escribe `target/ci/report.json` (digest de inputs + resultado por check).
+`just commit` refuses to commit if the gate is red or the tree changed mid-run.
+
+## Estructura
+
+```text
 Orbe/
-├── Cargo.toml                    # workspace root — members, profiles, single target/
-├── crates/orbe-api/              # the only crate for the MVP
-│   ├── src/{core,flow,gate,wire,ui}/
-│   ├── public/                   # main.css, PWA manifest, icons
-│   ├── Cargo.toml                # features = ["server"] (default) | web | desktop | mobile
-│   └── Dioxus.toml               # default_platform = "web"
-├── database/
-│   ├── schema/Inventory.surql
-│   └── seeds/                    # .toon seed data
+├── crates/orbe-api/     # el crate único: core, flow, gate, wire, ui + public/ (css, PWA)
+├── database/            # schema/ (SurrealQL) · seeds/ (.toon)
 ├── config/Env.example
-├── scripts/
-│   ├── smoke.sh                  # REST + RPC e2e (spawns its own server)
-│   ├── ci-report.sh              # the local CI gate
-│   ├── commit.sh                 # `just commit`
-│   ├── layer-check.sh            # V1/V7 boundary check
-│   └── check-bilingual-parity.sh
-├── docs/
-│   ├── decisions/                # ADRs
-│   ├── decks/                    # onboarding decks + client PDF template
-│   ├── archive/
-│   └── PLAN.md
-├── DESIGN.md · SPEC.md · CONVENTIONS.md · README.md
+├── scripts/             # smoke · ci-report · commit · layer-check · br-sync · wasm-size
+├── docs/                # decisions/ (ADRs) · decks/ · legal/ · archive/
+├── Cargo.toml           # workspace + perfiles (target/ único)
+└── justfile             # todos los comandos
 ```
 
-## Quick Start
+## Documentación
 
-**Prerequisites:** Rust 1.96+, jj (jujutsu), `dx` CLI (`cargo install dioxus-cli --locked`), `just`, `typst`, `presenterm`.
-Check yours with `just doctor`.
+| Recurso | Para qué |
+|---|---|
+| [`SPEC.md`](SPEC.md) | contrato: restricciones, invariantes, tareas, bugs |
+| [`CONVENTIONS.md`](CONVENTIONS.md) | cómo se nombra, se capas y se prueba |
+| [`DESIGN.md`](DESIGN.md) | sistema de diseño (tokens, motion, accesibilidad) |
+| [`docs/legal/COMMERCIAL.md`](docs/legal/COMMERCIAL.md) | AGPL vs. Orbe Cloud, marca, licencias comerciales |
+| [`docs/decks/`](docs/decks/README.md) | onboarding (presenterm) y PDF de cliente (typst) |
+| [`docs/decisions/`](docs/decisions/) | ADRs: SurrealDB, capas, Dioxus fullstack |
+| [`GUIDE.md`](GUIDE.md) | patrones de Rust/Dioxus que se usan aquí |
 
-All commands run from project root via `just`:
+## Problemas frecuentes
 
-```bash
-just dev            # dx serve — fullstack hot reload (main dev loop)
-just ci             # local gate: fmt, clippy, layers, tests, build, deck parity
-just ci-full        # gate + smoke (spawns a server) + wasm build
-just commit "msg"   # run the gate, then commit with jj (refuses on red)
-just test           # unit + flow tests (nextest)
-just smoke          # REST + RPC e2e against a private server
-just build          # cargo build
-just pwa            # release web bundle + PWA assets
-just wasm-size      # release wasm vs 500 KB gzip budget
-just clean-ship     # drop release/dx artifacts, keep the dev cache
-just target-size    # what is eating target/
-just status         # jj log
-just deck           # present the onboarding deck
-just                # essentials; `just help` for the full list
-```
+- **La UI sale sin estilos o con rutas absolutas** → los assets se sirven desde la raíz (`/main.css`); `asset!()` en SSR mete la ruta del disco en el HTML. Nunca lo uses para CSS o manifest.
+- **La UI se queda en "Cargando…"** → el SSR no encontró el bundle cliente. `just dev` lo construye y lo sirve; `cargo run` sólo da API + HTML.
+- **"Your app is being rebuilt"** → overlay del cliente *debug*. `just dev-release` (o el bundle de release) sale limpio.
+- **`target/` pesa 5.6 GB (13 GB con release)** → `just target-size` para el detalle, `just clean-ship` para borrar sólo los artefactos de envío.
+- **El build de Android falla con "Unsupported class file major version 71"** → Gradle 9 no entiende el JDK 27; usa `JAVA_HOME=/usr/lib/jvm/java-17-openjdk`.
+- **Los issues no aparecen en GitHub** → el tracker `br` es local; `just issues-sync` lo refleja al remoto.
+- **El servidor suelta `NotFound` en un `DELETE`** → V5/V4 se validan en `flow`, no en la base.
 
-Manual equivalents:
+## Licencia
 
-```bash
-cargo run                                    # server + UI on http://127.0.0.1:8080
-cargo nextest run                            # tests
-cd crates/orbe-api && dx serve               # fullstack hot reload
-dx build --platform web --release            # WASM bundle
-dx bundle --platform web --pwa               # PWA assets
-```
+**AGPL-3.0-only** ([LICENSE](LICENSE), [NOTICE](NOTICE)): instálalo, ejecútalo, autoalójalo, modifícalo.
+Lo que vendemos es el **servicio alojado** (Orbe Cloud: hosting, backups, upgrades, onboarding, soporte),
+no una licencia sobre el código. La marca "Orbe" está reservada.
 
-## Architecture
+> Si ofreces Orbe por red, AGPL §13 exige ofrecer a tus usuarios el código fuente de la versión
+> que corres — un enlace "Código fuente" en la UI. Es un componente de una línea y es
+> bloqueante antes del primer despliegue pago.
 
-Backend follows Clean Architecture, layered from domain to transport:
-
-```
-Core → Flow → Gate (ports.rs) → Wire (axum)
-                       ↑
-                       └── Gate (surreal/) — adapter implementing the ports
-```
-
-Plus the Dioxus UI sits on top of the same Flow use cases via `#[server]` fns:
-
-```
-UI (Dioxus) → #[server] → Flow → Gate ports → SurrealDB adapter
-                          ↑
-Wire (axum) →————————————┘  (same flow fns, no duplication)
-```
-
-| Layer | Dir | Role |
-|---|---|---|
-| Core | `core/` | Entities, value objects, domain rules |
-| Flow | `flow/` | Use cases — orchestrate core + gate traits |
-| Gate | `gate/` | Ports (`ports.rs`) + SurrealDB adapter (`surreal/`) |
-| Wire | `wire/` | Axum router (`/api/v1/inventory/*`) |
-| UI | `ui/` | Dioxus components + server fns (`/api/*`) |
-
-**Critical constraints (SPEC §V)** — enforced by `just layer-check`:
-
-- V1: Wire imports `flow/` + `core/` DTOs only — never `gate/surreal`.
-- V7: Dioxus UI ⊥ import from `gate/surreal/` — only via `#[server]` fns → flow → ports.
-- V9: money is `i64` minor units (`*_cents`) — no floats, no decimals.
-
-## Testing
-
-| Suite | What | Command |
-|---|---|---|
-| Unit | domain invariants (V2/V3/V5) | `cargo nextest run` |
-| Flow | use cases on a fake port: oversell → `Err` + no movement (V4/V5) | `cargo nextest run` |
-| Smoke | 18 checks: REST contract (201/404/409/422/204) + RPC happy paths | `just smoke` |
-| Layers | V1/V7 import boundaries | `just layer-check` |
-
-## Design
-
-Dark-first palette inspired by Nequi, Nu, WhatsApp — immersive, fast, magical.
-Design tokens in `crates/orbe-api/public/main.css` as CSS vars (`--o-purple`, `--o-surface`, …).
-See `DESIGN.md` for the full system.
-
-## Version Control
-
-[jujutsu](https://github.com/jj-vcs/jj) (jj), colocated with git.
-
-| Remote | Role | URL |
-|---|---|---|
-| `upd` | private primary | `upd-git@ssh.upd.dev:jjpb/Orbe.git` |
-| `codeberg` | public mirror | `ssh://git@codeberg.org/SethDev/Orbe.git` |
-| `github` | public mirror | `git@github.com:jjpb44/Orbe.git` |
-
-`just push` fans both branches out to all three; `jj bookmark list --all-remotes` shows the sync state.
-
-**Branches:** `develop` = integration (every `just commit` moves it) · `main` = stable (`just release` promotes).
-Never commit straight to `main`.
-
-**Issues:** the `br` tracker is local-only (`.beads/` is not committed). `just issues-sync`
-mirrors it into the public tracker on the remotes.
-
-```bash
-jj git clone upd-git@ssh.upd.dev:jjpb/Orbe.git   # maintainers
-git clone https://codeberg.org/SethDev/Orbe.git  # everyone else
-```
-
-## License
-
-**AGPL-3.0-only** — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
-
-The program is free: install it, run it, self-host it, change it — under AGPL.
-What we sell is the **hosted service** (Orbe Cloud: hosting, backups, upgrades,
-onboarding, support) on a monthly subscription, not a license fee on the code.
-Trademark ("Orbe", logo) is reserved. Full rationale, what AGPL does and does
-not protect, and the commercial-licensing path: [`docs/legal/COMMERCIAL.md`](docs/legal/COMMERCIAL.md).
-
-> If you offer Orbe over a network, AGPL §13 requires offering your users the
-> source of the version you run — a "Source code" link in the UI. That is a
-> one-line component and a launch blocker for the hosted offering.
-
-## Status
-
-**Phase 3 in progress.** 17 tests green (11 domain + 6 flow), 18 smoke checks green,
-clippy clean, both targets compile.
-
-- [x] SPEC, DESIGN, CONVENTIONS, PLAN
-- [x] `orbe-api` crate — server + WASM compile from one workspace
-- [x] SurrealDB schema — 4 tables (product, category, supplier, stock_movement)
-- [x] Product CRUD — 7 REST routes + 7 server fns
-- [x] Stock adjustments + movement log (V4/V5 enforced in flow)
-- [x] PWA manifest + icons (192/512 SVG)
-- [x] Local CI gate — `just ci` / `just commit`, JSON report, zero quota
-- [x] Layer boundary enforcement (V1/V7) — `just layer-check`
-- [x] Standard paths migration (Q/W/Z retired)
-- [x] PWA — manifest, icons, `sw.js` served at `/sw.js`, registered from `App` (T28)
-- [x] WASM budget — release 415 KB gzip vs 500 KB ceiling (T29)
-- [x] Client PDF via typst — `docs/decks/client/overview.typ` (T31)
-- [x] `.toon` seed loader — `just seed` / `ORBE_SEED=1` (T33)
-- [x] Pushed to `upd` (private) + `codeberg` + `github` mirrors (T15)
-- [x] AGPL-3.0-only + hosted-service model (C15) — `docs/legal/COMMERCIAL.md`
-- [x] Beads local-only + `br` → tracker mirror (C16)
-- [x] `develop` → `main` branching with `just release` (C17)
-- [x] Android APK builds — `just android` → `app-debug.apk` (JDK 17 + SDK 34)
-
-### Disk
-
-`target/` is the price of a 600-crate Rust graph: ~5.6 GB of dev cache, ~13 GB once
-release + dx platform builds exist. `just target-size` breaks it down,
-`just clean-ship` deletes only the ship artifacts and keeps the incremental cache.
+MIT → AGPL cambió a propósito: ver el razonamiento completo en
+[`docs/legal/COMMERCIAL.md`](docs/legal/COMMERCIAL.md).
