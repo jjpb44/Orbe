@@ -8,6 +8,7 @@
 //!
 //! V7: server fns are the only path the FE uses to reach data.
 
+#[cfg(feature = "server")]
 use dioxus::prelude::*;
 
 #[cfg(feature = "server")]
@@ -53,6 +54,7 @@ async fn main() {
 
 #[cfg(not(feature = "server"))]
 fn main() {
+    use dioxus::launch;
     use orbe_api::ui::App;
-    dioxus::launch(App);
+    launch(App);
 }

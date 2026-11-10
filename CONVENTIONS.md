@@ -141,9 +141,36 @@ Hand-rolled loader in `gate/surreal/seed.rs` — 8-line parser, no extra dep. Ca
 - One commit per `T<n>` task minimum. `jj` colocated git.
 - Commit prefix: `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`, `perf:`.
 - `B<n>` in SPEC §B references the bug → the `fix:` commit message includes `Fixes B<n>`.
-- **`just commit "msg"`** is the only sanctioned commit path: it runs `just ci`, writes `target/ci/report.json`, and refuses to commit on red. `just commit --force "msg"` for emergencies (recorded in the report).
+- **`just commit "msg"`** is the only sanctioned commit path: it runs `just ci`, writes `target/ci/report.json`, and refuses to commit on red.
 - No force-push, no skipped hooks.
-- **Remotes:** `upd` (private primary) · `codeberg` (public mirror) · `github` (optional mirror).
+
+### Branches
+
+| Branch | Moves when | Purpose |
+|---|---|---|
+| `develop` | every `just commit` | integration — the branch you work on |
+| `main` | `just release` only | stable — what users install |
+
+`just push` fans both branches out to every remote. `just release` promotes
+`develop` → `main` and pushes. Never commit straight to `main`.
+
+### Remotes
+
+| Remote | Role | URL |
+|---|---|---|
+| `upd` | private primary | `upd-git@ssh.upd.dev:jjpb/Orbe.git` |
+| `codeberg` | public mirror | `ssh://git@codeberg.org/SethDev/Orbe.git` |
+| `github` | public mirror | `git@github.com:jjpb44/Orbe.git` |
+
+### Issue tracking
+
+- `br` (beads) is **local**: `.beads/` is untracked (only `.beads/.gitignore`
+  is committed). The DB, WAL and JSONL never leave the machine.
+- Public issues live on the remotes. `scripts/br-sync.sh` mirrors br → tracker
+  one-way and idempotently (`just issues-sync`); the mapping lives in
+  `.beads/remote-map.json` (also local).
+- `br` owns the workflow (claim, close, priority). The remote tracker is the
+  public face — never edit the same issue in both places.
 
 ## 9. What we DON'T do
 
@@ -154,6 +181,9 @@ Hand-rolled loader in `gate/surreal/seed.rs` — 8-line parser, no extra dep. Ca
 - ❌ `unsafe` outside `gate/surreal/` and wire adapter wiring.
 - ❌ `.unwrap()` in flow/, wire/, ui/. Allowed in `main.rs` startup paths and tests.
 - ❌ New top-level dirs without a SPEC §C entry — the tree in §1 is the whole list.
+- ❌ Committing `.beads/` (local tracker state) — C16.
+- ❌ Committing directly to `main` — `develop` is the integration branch (C17).
+- ❌ Adding a clause that restricts commercial use of the unmodified program (C15, AGPL §4).
 - ❌ JSON in `database/seeds/` (TOON only).
 - ❌ Numeric-prefixed dirs (`3a.Onbo`) — retired with Q/W/Z.
 - ❌ `float`/`decimal` for money — `i64` cents.

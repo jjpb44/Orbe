@@ -41,4 +41,6 @@ fi
 printf '\n  \033[32mcommitting\033[0m → %s\n\n' "$MSG"
 jj describe -m "$MSG"
 jj new
+# Integration branch moves with every commit; `main` only moves on `just release`.
+jj bookmark set develop -r @- >/dev/null 2>&1 || true
 jj log --no-graph -n 3 -T 'change_id.short() ++ " " ++ description.first_line() ++ "\n"'

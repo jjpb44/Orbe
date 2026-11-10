@@ -150,7 +150,13 @@ See `DESIGN.md` for the full system.
 | `codeberg` | public mirror | `ssh://git@codeberg.org/SethDev/Orbe.git` |
 | `github` | public mirror | `git@github.com:jjpb44/Orbe.git` |
 
-`just push` fans `main` out to all three; `jj bookmark list --all-remotes` shows the sync state.
+`just push` fans both branches out to all three; `jj bookmark list --all-remotes` shows the sync state.
+
+**Branches:** `develop` = integration (every `just commit` moves it) · `main` = stable (`just release` promotes).
+Never commit straight to `main`.
+
+**Issues:** the `br` tracker is local-only (`.beads/` is not committed). `just issues-sync`
+mirrors it into the public tracker on the remotes.
 
 ```bash
 jj git clone upd-git@ssh.upd.dev:jjpb/Orbe.git   # maintainers
@@ -159,7 +165,17 @@ git clone https://codeberg.org/SethDev/Orbe.git  # everyone else
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+**AGPL-3.0-only** — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+The program is free: install it, run it, self-host it, change it — under AGPL.
+What we sell is the **hosted service** (Orbe Cloud: hosting, backups, upgrades,
+onboarding, support) on a monthly subscription, not a license fee on the code.
+Trademark ("Orbe", logo) is reserved. Full rationale, what AGPL does and does
+not protect, and the commercial-licensing path: [`docs/legal/COMMERCIAL.md`](docs/legal/COMMERCIAL.md).
+
+> If you offer Orbe over a network, AGPL §13 requires offering your users the
+> source of the version you run — a "Source code" link in the UI. That is a
+> one-line component and a launch blocker for the hosted offering.
 
 ## Status
 
@@ -180,7 +196,10 @@ clippy clean, both targets compile.
 - [x] Client PDF via typst — `docs/decks/client/overview.typ` (T31)
 - [x] `.toon` seed loader — `just seed` / `ORBE_SEED=1` (T33)
 - [x] Pushed to `upd` (private) + `codeberg` + `github` mirrors (T15)
-- [ ] Android smoke build (T30) — blocked: no ANDROID_HOME/NDK here
+- [x] AGPL-3.0-only + hosted-service model (C15) — `docs/legal/COMMERCIAL.md`
+- [x] Beads local-only + `br` → tracker mirror (C16)
+- [x] `develop` → `main` branching with `just release` (C17)
+- [x] Android APK builds — `just android` → `app-debug.apk` (JDK 17 + SDK 34)
 
 ### Disk
 

@@ -26,8 +26,12 @@ Principles: reduce cognitive-load always · transmit the mood explicitly, not as
 | C12 | presenterm for interactive terminal decks only — `docs/decks/onboarding/onboarding.{en,es}.md` (bilingual, parity enforced by `scripts/check-bilingual-parity.sh`); built-in `catppuccin-mocha` via `-t`. Client-facing PDFs are **typst**, not presenterm (no TTY hack, no `script -qc`) |
 | C13 | `just ci` is the CI. Writes `target/ci/report.json` (input hash + per-check result). Self-attested, local, zero quota. No hosted CI runners |
 | C14 | Money is `i64` minor units (`*_cents`). No `float`, no `decimal` on the wire or in Rust |
+| C15 | License = **AGPL-3.0-only** (`LICENSE`). Commercial offering = hosted service, not the code. Trademark reserved. See `docs/legal/COMMERCIAL.md` |
+| C16 | `br` (beads) is a **local** tracker — `.beads/` is never committed (only `.beads/.gitignore`). Public issues live on the remotes; `scripts/br-sync.sh` mirrors br → tracker |
+| C17 | Branching — `develop` is the integration branch (moves on every `just commit`); `main` is stable and only moves via `just release`. Both pushed to upd/codeberg/github |
 
 ### Change log
+- 2026-11-10 — AGPL-3.0-only + hosted-service model (C15). Beads local-only with br→tracker mirror (C16). Branching `develop`→`main` (C17). Web fix: `asset!()` leaked absolute FS paths into SSR HTML (CSS + PWA manifest were 404) → root-relative paths. Android APK builds (T30).
 - 2026-07-13 — Top-level P/R/A → Q/W/Z (C4, C12, T2, T5, T6 paths updated).
 - 2026-11-09 — Q/W/Z → standard paths (C4, all §T paths). Root Cargo workspace added (C8). Local CI gate `just ci` (C6, C13). Money pinned to `i64` cents (C14) — §I reconciled with code. Remotes split primary/mirror (C5). presenterm narrowed to interactive decks; client PDFs → typst (C12).
 
@@ -147,9 +151,13 @@ DEFINE FIELD IF NOT EXISTS at       ON TABLE stock_movement TYPE datetime DEFAUL
 | T27 | x | justfile rewrite — banner helper, non-interactive, `layer-check` | C9 |
 | T28 | x | PWA service worker — `public/sw.js` (shell cache, API bypass) served at `/sw.js`, registered from `App` | C3 |
 | T29 | x | WASM budget enforced — release 415 KB gzip vs 500 KB, `scripts/wasm-size.sh` in `just ci-full` | C3 |
-| T30 | . | Android smoke build — BLOCKED: no ANDROID_HOME/NDK on this machine (targets installed) | C3 |
+| T30 | x | Android APK builds — `dx build --platform android` → `app-debug.apk` (35 MB). Needed: `JAVA_HOME`=JDK 17 (Gradle 9 rejects JDK 27 class files) + `platforms;android-34` | C3 |
 | T31 | x | Client PDF → `docs/decks/client/overview.typ` (typst `--input`), presenterm kept for onboarding only | C12 |
 | T32 | x | Flow-layer tests — 7 tests on a fake port: adjust-below-zero → Err + zero movements (V4/V5), 404s | V4,V5 |
+| T34 | x | Web fix — SSR `asset!()` leaked absolute filesystem paths (CSS + manifest 404) → root-relative; `document::Title` for the page title | C3 |
+| T35 | x | Beads local-only — `.beads/` untracked (only `.gitignore`), br DB schema rebuilt + WAL checkpointed | C16 |
+| T36 | x | `scripts/br-sync.sh` — br → GitHub/Forgejo issue mirror (one-way, idempotent) | C16 |
+| T37 | x | Branching — `develop` bookmark (integration) + `just release` promotes to `main`; `just push` fans out to 3 remotes | C17 |
 | T33 | x | Seed loader — `gate/surreal/seed.rs` (hand-rolled TOON parser + idempotent CREATE), `ORBE_SEED=1` / `just seed` | C11 |
 
 ## §B — Bugs

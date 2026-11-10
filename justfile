@@ -114,10 +114,15 @@ pwa:
     cd {{_crate}} && dx bundle --platform web --release
 
 [group('ship')]
-[doc('build android APK')]
+[doc('build android APK (needs ANDROID_HOME + JDK 17)')]
 android:
     @just _h '▲' 'android'
-    cd {{_crate}} && dx build --platform android
+    ANDROID_HOME=${ANDROID_HOME:-/opt/android-sdk} \
+    ANDROID_NDK_HOME=${ANDROID_NDK_HOME:-/opt/android-ndk} \
+    NDK_HOME=${NDK_HOME:-/opt/android-ndk} \
+    JAVA_HOME=${JAVA_HOME:-/usr/lib/jvm/java-17-openjdk} \
+    sh -c 'cd {{_crate}} && dx build --platform android'
+    @fd -t f -g '*.apk' target/dx 2>/dev/null | head -3
 
 [group('ship')]
 [doc('build native desktop binary')]
@@ -188,9 +193,26 @@ ci-full:
     @bash {{_ci}} --full
 
 [group('ci')]
-[doc('push main to upd (primary) + codeberg + github mirrors')]
+[doc('push develop + main to upd (primary) + codeberg + github mirrors')]
 push:
     @just _h '▲' 'push'
+    @for remote in upd codeberg github; do \
+        jj git push --remote $remote --bookmark develop || exit 1; \
+        jj git push --remote $remote --bookmark main || exit 1; \
+    done
+    @jj bookmark list --all-remotes
+
+[group('ci')]
+[doc('mirror local br issues into the remote tracker')]
+issues-sync:
+    @just _h '▲' 'issues-sync'
+    bash scripts/br-sync.sh
+
+[group('ci')]
+[doc('promote develop → main (release) and push')]
+release:
+    @just _h '▲' 'release'
+    jj bookmark set main -r develop
     jj git push --remote upd --bookmark main
     jj git push --remote codeberg --bookmark main
     jj git push --remote github --bookmark main

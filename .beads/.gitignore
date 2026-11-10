@@ -3,6 +3,12 @@
 *.db-journal
 *.db-shm
 *.db-wal
+*.db-wal*
+*.vacuum-wal-cert*
+*.fsqlite-migration-state
+*-fsqlite-ns-gate
+*-fsqlite-ns-use
+.br-wal-index-*/
 
 # Lock files
 *.lock
@@ -44,3 +50,9 @@ redirect
 
 # bv (beads viewer) lock file
 .bv.lock
+
+# Issue data is local-only for this project (SPEC C15): the public tracker
+# lives on the remotes, mirrored by `scripts/br-sync.sh`.
+issues.jsonl
+metadata.json
+config.yaml
